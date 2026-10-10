@@ -55,7 +55,6 @@ def run_tests_and_update_docs() -> None:
     else:
         # If not found, try common locations
         possible_roots = [
-            Path.home() / "github" / "tbaur" / "bluos-controller",
             Path.home() / "github" / "bluos-controller",
             Path.home() / ".config" / "bluos-controller",
             Path(__file__).parent,

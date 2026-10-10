@@ -163,7 +163,7 @@ class TestDeviceInfo:
     def test_synced_slave_prefers_syncstatus_volume(self, mock_network, controller):
         """Synced /Status volume is group level — prefer SyncStatus attribute."""
         sync_xml = (
-            b'<SyncStatus name="Kitchen Speakers" volume="64" db="-8.7">'
+            b'<SyncStatus name="Player A" volume="64" db="-8.7">'
             b'<master port="11000">192.168.1.174</master>'
             b'</SyncStatus>'
         )

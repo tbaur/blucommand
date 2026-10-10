@@ -30,9 +30,9 @@ class TestMultiDeviceSupport:
     def mock_devices(self):
         """Create mock device statuses."""
         return [
-            PlayerStatus(ip="192.168.1.100", name="Living Room"),
-            PlayerStatus(ip="192.168.1.101", name="Kitchen"),
-            PlayerStatus(ip="192.168.1.102", name="Bedroom"),
+            PlayerStatus(ip="192.168.1.100", name="Zone One"),
+            PlayerStatus(ip="192.168.1.101", name="Player A"),
+            PlayerStatus(ip="192.168.1.102", name="Zone Two"),
         ]
     
     def test_get_matching_devices_all(self, cli, mock_devices):
@@ -41,32 +41,32 @@ class TestMultiDeviceSupport:
             mock_info.side_effect = mock_devices
             devices = cli._get_matching_devices(None)
             assert len(devices) == 3
-            assert all(d.name in ["Living Room", "Kitchen", "Bedroom"] for d in devices)
+            assert all(d.name in ["Zone One", "Player A", "Zone Two"] for d in devices)
     
     def test_get_matching_devices_specific(self, cli, mock_devices):
         """Test getting specific device by exact name."""
         with patch.object(cli.ctl, 'get_device_info') as mock_info:
             mock_info.side_effect = mock_devices
-            devices = cli._get_matching_devices("Living Room")
+            devices = cli._get_matching_devices("Zone One")
             assert len(devices) == 1
-            assert devices[0].name == "Living Room"
+            assert devices[0].name == "Zone One"
     
     def test_get_matching_devices_pattern(self, cli, mock_devices):
         """Test getting devices by pattern match."""
         with patch.object(cli.ctl, 'get_device_info') as mock_info:
             mock_info.side_effect = mock_devices
-            devices = cli._get_matching_devices("Room")
+            devices = cli._get_matching_devices("Zone")
             assert len(devices) == 2
             device_names = [d.name for d in devices]
-            assert "Living Room" in device_names
-            assert "Bedroom" in device_names
-            assert "Kitchen" not in device_names
+            assert "Zone One" in device_names
+            assert "Zone Two" in device_names
+            assert "Player A" not in device_names
     
     def test_get_matching_devices_no_match(self, cli, mock_devices):
         """Test getting devices with no match."""
         with patch.object(cli.ctl, 'get_device_info') as mock_info:
             mock_info.side_effect = mock_devices
-            devices = cli._get_matching_devices("Office")
+            devices = cli._get_matching_devices("Player C")
             assert len(devices) == 0
     
     @patch('cli.Network')
@@ -84,8 +84,8 @@ class TestMultiDeviceSupport:
     def test_play_specific_device(self, mock_network, cli, mock_devices):
         """Test play command on specific device."""
         mock_network.get.return_value = b"OK"
-        args = Namespace(target="Living Room")
-        matching = [d for d in mock_devices if d.name == "Living Room"]
+        args = Namespace(target="Zone One")
+        matching = [d for d in mock_devices if d.name == "Zone One"]
         
         with patch.object(cli, '_get_matching_devices', return_value=matching):
             with patch.object(cli.ctl, 'play', return_value=True) as mock_play:
@@ -145,8 +145,8 @@ class TestMultiDeviceSupport:
     @patch('cli.Network')
     def test_reboot_with_target(self, mock_network, cli, mock_devices):
         """Test reboot with device target."""
-        matching = [d for d in mock_devices if d.name == "Living Room"]
-        args = Namespace(target="Living Room")
+        matching = [d for d in mock_devices if d.name == "Zone One"]
+        args = Namespace(target="Zone One")
         
         with patch.object(cli, '_get_matching_devices', return_value=matching):
             with patch('builtins.input', return_value='y'):

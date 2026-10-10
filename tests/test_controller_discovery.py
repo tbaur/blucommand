@@ -147,8 +147,8 @@ class TestDiscoveryMethods:
         """musc + musp SRV ports become distinct endpoints."""
         def fake_dns_sd(service, timeout):
             if service == '_musp._tcp':
-                return "Kitchen._musp._tcp SRV 0 0 11010 speaker.local.\n"
-            return "Living._musc._tcp SRV 0 0 11000 speaker.local.\n"
+                return "PlayerA._musp._tcp SRV 0 0 11010 speaker.local.\n"
+            return "ZoneOne._musc._tcp SRV 0 0 11000 speaker.local.\n"
 
         with patch.object(controller, '_run_dns_sd', side_effect=fake_dns_sd):
             with patch.object(

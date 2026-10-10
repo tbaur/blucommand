@@ -63,7 +63,7 @@ logger = logging.getLogger("BluOS")
 
 
 def parse_bluos_host(value: Optional[str]) -> str:
-    """Extract an IP/host from BluOS endpoint values like ``172.16.0.1`` or ``172.16.0.1:11000``."""
+    """Extract an IP/host from BluOS endpoint values like ``192.168.1.20`` or ``192.168.1.20:11000``."""
     if not value:
         return ""
     ip, _port = parse_endpoint(value.strip())
@@ -83,7 +83,7 @@ def parse_sync_status_root(root: ET.Element) -> tuple[str, str, List[str]]:
 
     BluOS may expose values as root attributes or child elements. Legacy clients
     assumed ``master`` was an attribute; current firmware uses ``<master>``.
-    Multi-zone CI players use ``ip:port`` ids (e.g. ``172.16.0.1:11010``).
+    Multi-zone CI players use ``ip:port`` ids (e.g. ``192.168.1.20:11010``).
     """
     master_attr = root.attrib.get("master") or ""
     master_elem = root.find("master")

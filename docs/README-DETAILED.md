@@ -52,7 +52,7 @@ Current line: multi-zone discovery (`ip:port`, `_musc` + `_musp` for CI secondar
 **Multi-Device Support:**
 - Control all devices simultaneously (default)
 - Target specific devices by name
-- Pattern matching for multiple devices (e.g., "Room" matches "Living Room", "Bedroom")
+- Pattern matching for multiple devices (e.g., "Zone" matches "Zone One", "Zone Two")
 
 **Volume Operations:**
 - Set absolute volume (0-100%)
@@ -123,18 +123,18 @@ Current line: multi-zone discovery (`ip:port`, `_musc` + `_musp` for CI secondar
 **Example output (`sync list`):**
 
 ```text
-Group: Living Room Speakers + 1 slave
-  Primary: Living Room Speakers (172.16.10.174)
-  Slave:   Kitchen Speakers (172.16.10.88)
+Group: Zone One + 1 slave
+  Primary: Zone One (192.168.1.32)
+  Slave:   Player A (192.168.1.20)
 
 Standalone:
-  Patio Speakers (172.16.10.90)
+  Player B (192.168.1.23)
 ```
 
 **Example output (`status`, grouped primary with 7 slaves):**
 
 ```text
-[1] Living Room Speakers
+[1] Zone One
     Status: ★ PRIMARY  |  Vol: 10%  |  Source: Tidal
     Sync:   6 slaves
     ♫ Track:  Hayling
@@ -218,7 +218,7 @@ Standalone:
 **Universal Device Targeting:**
 - All commands support operating on all devices (default behavior)
 - Target specific devices by exact or partial name match
-- Pattern matching for bulk operations (e.g., "Room" matches multiple devices)
+- Pattern matching for bulk operations (e.g., "Zone" matches multiple devices)
 - Case-insensitive device name matching
 - Clear feedback showing which devices are being controlled
 
@@ -325,8 +325,8 @@ bluos-controller keychain delete
 After installation, use the `bluos-controller` command:
 
 **Note**: Most commands support controlling all devices (default) or specific devices by name. Device names can be:
-- Exact match: `"Living Room"`
-- Partial match: `"Room"` matches "Living Room", "Bedroom", etc.
+- Exact match: `"Zone One"`
+- Partial match: `"Zone"` matches "Zone One", "Zone Two", etc.
 - Case-insensitive matching
 
 ### Discover Devices
@@ -342,7 +342,7 @@ bluos-controller discover
 bluos-controller status
 
 # Filter by name
-bluos-controller status "Living Room"
+bluos-controller status "Zone One"
 
 # Force fresh scan
 bluos-controller status --scan
@@ -372,7 +372,7 @@ bluos-controller volume unmute
 bluos-controller volume reset
 
 # Target specific device
-bluos-controller volume 25 "Living Room"
+bluos-controller volume 25 "Zone One"
 ```
 
 ### Playback Control
@@ -389,11 +389,11 @@ bluos-controller previous
 bluos-controller toggle
 
 # Specific device
-bluos-controller play "Living Room"
-bluos-controller pause "Kitchen"
+bluos-controller play "Zone One"
+bluos-controller pause "Player A"
 
 # Pattern matching (multiple devices)
-bluos-controller play "Room"  # Matches "Living Room", "Bedroom", etc.
+bluos-controller play "Zone"  # Matches "Zone One", "Zone Two", etc.
 ```
 
 ### Queue Management
@@ -405,17 +405,17 @@ Queue commands support all devices or specific devices:
 bluos-controller queue
 
 # Show queue for specific device
-bluos-controller queue "Living Room"
+bluos-controller queue "Zone One"
 
 # Clear queue on all devices
 bluos-controller queue clear
 
 # Clear queue on specific device
-bluos-controller queue clear "Kitchen"
+bluos-controller queue clear "Player A"
 
 # Move track in queue (all or specific)
 bluos-controller queue move 3 1          # All devices
-bluos-controller queue move 3 1 "Living Room"  # Specific device
+bluos-controller queue move 3 1 "Zone One"  # Specific device
 ```
 
 ### Input Source Selection
@@ -427,14 +427,14 @@ Input commands support all devices or specific devices:
 bluos-controller inputs
 
 # List inputs for specific device
-bluos-controller inputs "Living Room"
+bluos-controller inputs "Zone One"
 
 # Set input on all devices
 bluos-controller inputs "" "Bluetooth"
 
 # Set input on specific device
-bluos-controller inputs "Living Room" "Bluetooth"
-bluos-controller inputs "Kitchen" "Optical 1"
+bluos-controller inputs "Zone One" "Bluetooth"
+bluos-controller inputs "Player A" "Optical 1"
 ```
 
 ### Bluetooth Mode Control
@@ -446,16 +446,16 @@ Bluetooth commands support all devices or specific devices:
 bluos-controller bluetooth
 
 # Show mode for specific device
-bluos-controller bluetooth "Living Room"
+bluos-controller bluetooth "Zone One"
 
 # Set mode on all devices
 bluos-controller bluetooth "" auto
 
 # Set mode on specific device
-bluos-controller bluetooth "Living Room" manual
-bluos-controller bluetooth "Kitchen" auto
-bluos-controller bluetooth "Bedroom" guest
-bluos-controller bluetooth "Office" disable
+bluos-controller bluetooth "Zone One" manual
+bluos-controller bluetooth "Player A" auto
+bluos-controller bluetooth "Zone Two" guest
+bluos-controller bluetooth "Player C" disable
 ```
 
 ### Preset Management
@@ -467,13 +467,13 @@ Preset commands support all devices or specific devices:
 bluos-controller presets
 
 # List presets for specific device
-bluos-controller presets "Living Room"
+bluos-controller presets "Zone One"
 
 # Play preset on all devices
 bluos-controller presets "" 1
 
 # Play preset on specific device
-bluos-controller presets "Living Room" 1
+bluos-controller presets "Zone One" 1
 ```
 
 ### Sync Group Management
@@ -481,8 +481,8 @@ bluos-controller presets "Living Room" 1
 Runtime BluOS groups use the **primary** player to attach or detach slaves.
 
 ```bash
-# Create sync group (Living Room primary, Kitchen + Bedroom slaves)
-bluos-controller sync create "Living Room Speakers" "Kitchen Speakers,Bedroom Speakers"
+# Create sync group (Zone One primary, Player A + Zone Two slaves)
+bluos-controller sync create "Zone One" "Player A,Zone Two"
 
 # Break all runtime groups
 bluos-controller sync break
@@ -491,7 +491,7 @@ bluos-controller sync break
 bluos-controller sync list --scan
 
 # Break groups involving a specific player (primary or slave)
-bluos-controller sync break "Kitchen Speakers"
+bluos-controller sync break "Player A"
 
 # List sync groups and standalone players
 bluos-controller sync list
@@ -537,13 +537,13 @@ Reboot commands support all devices or specific devices:
 bluos-controller reboot
 
 # Hard reboot specific device
-bluos-controller reboot "Living Room"
+bluos-controller reboot "Zone One"
 
 # Soft reboot all devices
 bluos-controller reboot --soft
 
 # Soft reboot specific device
-bluos-controller reboot --soft "Kitchen"
+bluos-controller reboot --soft "Player A"
 ```
 
 ## Debug Mode & Logging

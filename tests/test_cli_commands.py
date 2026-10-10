@@ -31,8 +31,8 @@ class TestCLICommands:
     def mock_devices(self):
         """Create mock device statuses."""
         return [
-            PlayerStatus(ip="192.168.1.100", name="Living Room", volume=50, state="play"),
-            PlayerStatus(ip="192.168.1.101", name="Kitchen", volume=30, state="pause"),
+            PlayerStatus(ip="192.168.1.100", name="Zone One", volume=50, state="play"),
+            PlayerStatus(ip="192.168.1.101", name="Player A", volume=30, state="pause"),
         ]
     
     def test_discover(self, cli):
@@ -113,7 +113,7 @@ class TestCLICommands:
                 
                 with patch.object(cli.ctl, 'sync_unifi', return_value="SUCCESS:2"):
                     with patch('builtins.print'):
-                        cli.status(pattern="Living", json_mode=False)
+                        cli.status(pattern="One", json_mode=False)
     
     def test_volume_list(self, cli, mock_devices):
         """Test volume command listing volumes."""
@@ -192,7 +192,7 @@ class TestCLICommands:
     def test_diagnose(self, mock_arp, cli, mock_devices):
         """Test diagnose command."""
         mock_arp.return_value = "192.168.1.100 aa:bb:cc:dd:ee:ff"
-        target = "Living Room"
+        target = "Zone One"
         
         with patch.object(cli.ctl, 'get_device_info') as mock_info:
             mock_info.return_value = mock_devices[0]
@@ -212,7 +212,7 @@ class TestCLICommands:
         """Test status header printing."""
         with patch('builtins.print'):
             cli._print_status_header(None, "SUCCESS:5")
-            cli._print_status_header("Room", "SUCCESS:5")
+            cli._print_status_header("Zone", "SUCCESS:5")
     
     def test_format_connection_string(self, cli):
         """Test connection string formatting."""

@@ -208,7 +208,7 @@ class TestBluOSController:
     ):
         """Wired clients prefer switch port_table rates over broken STA rates."""
         mock_exists.return_value = False
-        controller.ips = ['172.16.10.101']
+        controller.ips = ['192.168.1.35']
         controller.config.data = {
             'UNIFI_ENABLED': 'true',
             'UNIFI_CONTROLLER': 'controller.local',
@@ -219,7 +219,7 @@ class TestBluOSController:
 
         sta_response = {
             'data': [{
-                'ip': '172.16.10.101',
+                'ip': '192.168.1.35',
                 'is_wired': True,
                 'last_uplink_name': 'sw3-01',
                 'sw_mac': '11:22:33:44:55:66',
@@ -254,7 +254,7 @@ class TestBluOSController:
         result = controller.sync_unifi()
 
         assert result == "SUCCESS:1"
-        wired = controller.unifi_map['172.16.10.101']
+        wired = controller.unifi_map['192.168.1.35']
         assert wired.is_wired is True
         assert wired.rate_source == "switch-port"
         assert wired.down_rate == 500_000
@@ -272,7 +272,7 @@ class TestBluOSController:
     ):
         """If switch stats are missing, keep wired STA rates as fallback."""
         mock_exists.return_value = False
-        controller.ips = ['172.16.10.101']
+        controller.ips = ['192.168.1.35']
         controller.config.data = {
             'UNIFI_ENABLED': 'true',
             'UNIFI_CONTROLLER': 'controller.local',
@@ -282,7 +282,7 @@ class TestBluOSController:
         }
         sta_response = {
             'data': [{
-                'ip': '172.16.10.101',
+                'ip': '192.168.1.35',
                 'is_wired': True,
                 'last_uplink_name': 'sw3-01',
                 'sw_mac': '11:22:33:44:55:66',
@@ -303,7 +303,7 @@ class TestBluOSController:
         result = controller.sync_unifi()
 
         assert result == "SUCCESS:1"
-        wired = controller.unifi_map['172.16.10.101']
+        wired = controller.unifi_map['192.168.1.35']
         assert wired.rate_source == "client"
         assert wired.down_rate == 50
         assert wired.up_rate == 25
