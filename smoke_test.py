@@ -59,7 +59,7 @@ class SmokeTest:
         # Mock device info
         mock_status1 = PlayerStatus(
             ip='192.168.1.100',
-            name='Living Room',
+            name='Zone One',
             model='Node',
             brand='BluOS',
             status='online',
@@ -73,7 +73,7 @@ class SmokeTest:
         
         mock_status2 = PlayerStatus(
             ip='192.168.1.101',
-            name='Bedroom',
+            name='Zone Two',
             model='Pulse',
             brand='BluOS',
             status='online',
@@ -134,7 +134,7 @@ class SmokeTest:
         cli = BluOSCLI(controller)
         
         with patch('sys.stdout', new=StringIO()) as fake_out:
-            cli.status(pattern='Living', json_mode=False)
+            cli.status(pattern='One', json_mode=False)
             output = fake_out.getvalue()
             assert len(output) > 0
     
@@ -463,8 +463,8 @@ class SmokeTest:
         
         args = Mock()
         args.action = 'create'
-        args.master = 'Living Room'
-        args.slaves = 'Bedroom'
+        args.master = 'Zone One'
+        args.slaves = 'Zone Two'
         args.target = None
         
         with patch('sys.stdout', new=StringIO()) as fake_out:
@@ -481,7 +481,7 @@ class SmokeTest:
         args.action = 'break'
         args.master = None
         args.slaves = None
-        args.target = 'Living Room'
+        args.target = 'Zone One'
         
         with patch('sys.stdout', new=StringIO()) as fake_out:
             cli.sync(args)
@@ -534,7 +534,7 @@ class SmokeTest:
         cli = BluOSCLI(controller)
         
         with patch('sys.stdout', new=StringIO()) as fake_out:
-            cli.diagnose('Living Room')
+            cli.diagnose('Zone One')
             output = fake_out.getvalue()
             assert len(output) > 0
     

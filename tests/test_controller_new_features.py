@@ -301,17 +301,17 @@ class TestSyncGroups:
         mock_network.get.side_effect = [None, None, err, err]
         controller.ips = []
         result = controller.remove_sync_slave(
-            "172.16.10.174:11000", "172.16.10.166:11000"
+            "192.168.1.32:11000", "192.168.1.31:11000"
         )
         assert result is False
 
     @patch('controller.Network')
     def test_remove_sync_slave_reparents_orphan(self, mock_network, controller):
         """Orphaned reconnecting slave is cleared via a live donor primary."""
-        controller.ips = ["172.16.10.144:11000", "172.16.10.166:11000"]
-        add_ok = b'<addSlave><slave id="172.16.10.166" port="11000"/></addSlave>'
-        remove_ok = b"<SyncStatus id='172.16.10.144:11000'/>"
-        standalone = b"<SyncStatus id='172.16.10.166:11000' name='Roaming'/>"
+        controller.ips = ["192.168.1.30:11000", "192.168.1.31:11000"]
+        add_ok = b'<addSlave><slave id="192.168.1.31" port="11000"/></addSlave>'
+        remove_ok = b"<SyncStatus id='192.168.1.30:11000'/>"
+        standalone = b"<SyncStatus id='192.168.1.31:11000' name='Player D'/>"
         mock_network.get.side_effect = [
             None,  # RemoveSlave on dead master
             None,  # legacy on master
@@ -322,26 +322,26 @@ class TestSyncGroups:
             standalone,  # verify ungrouped
         ]
         result = controller.remove_sync_slave(
-            "172.16.10.174:11000", "172.16.10.166:11000"
+            "192.168.1.32:11000", "192.168.1.31:11000"
         )
         assert result is True
         urls = [c.args[0] for c in mock_network.get.call_args_list]
-        assert any("172.16.10.144:11000/AddSlave" in u for u in urls)
-        assert any("172.16.10.144:11000/RemoveSlave" in u for u in urls)
+        assert any("192.168.1.30:11000/AddSlave" in u for u in urls)
+        assert any("192.168.1.30:11000/RemoveSlave" in u for u in urls)
 
     @patch('controller.Network')
     def test_player_is_ungrouped_states(self, mock_network, controller):
         """Ungrouped check distinguishes standalone, grouped, and unreachable."""
         mock_network.get.return_value = b"<SyncStatus name='x'/>"
-        assert controller._player_is_ungrouped("172.16.10.166:11000") is True
+        assert controller._player_is_ungrouped("192.168.1.31:11000") is True
 
         mock_network.get.return_value = (
-            b"<SyncStatus><master>172.16.10.174</master></SyncStatus>"
+            b"<SyncStatus><master>192.168.1.32</master></SyncStatus>"
         )
-        assert controller._player_is_ungrouped("172.16.10.166:11000") is False
+        assert controller._player_is_ungrouped("192.168.1.31:11000") is False
 
         mock_network.get.return_value = None
-        assert controller._player_is_ungrouped("172.16.10.166:11000") is None
+        assert controller._player_is_ungrouped("192.168.1.31:11000") is None
 
     @patch('controller.Network')
     def test_remove_sync_slave_unreachable_not_success(self, mock_network, controller):
@@ -355,7 +355,7 @@ class TestSyncGroups:
         with patch.object(controller, '_wait_until_ungrouped', return_value=False):
             with patch.object(controller, '_ungroup_via_reparent', return_value=False):
                 result = controller.remove_sync_slave(
-                    "172.16.10.174:11000", "172.16.10.166:11000"
+                    "192.168.1.32:11000", "192.168.1.31:11000"
                 )
         assert result is False
 

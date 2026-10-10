@@ -40,20 +40,20 @@ Select an input with `GET /Play?inputTypeIndex=<type>-<n>` where type is `analog
 ### Primary (group leader)
 
 ```xml
-<SyncStatus group="Living Room Speakers+Kitchen Speakers" name="Living Room Speakers">
-  <slave id="172.16.10.88" port="11000"/>
+<SyncStatus group="Zone One+Player A" name="Zone One">
+  <slave id="192.168.1.20" port="11000"/>
 </SyncStatus>
 ```
 
 ### Slave (group follower)
 
 ```xml
-<SyncStatus name="Kitchen Speakers">
-  <master port="11000">172.16.10.174</master>
+<SyncStatus name="Player A">
+  <master port="11000">192.168.1.32</master>
 </SyncStatus>
 ```
 
-Values may include a port suffix (`172.16.10.174:11000` or `172.16.10.144:11010`). Clients should preserve the port for API calls and sync membership; bare IPs default to `11000`.
+Values may include a port suffix (`192.168.1.32:11000` or `192.168.1.30:11010`). Clients should preserve the port for API calls and sync membership; bare IPs default to `11000`.
 
 ### CI secondary zones
 

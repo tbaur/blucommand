@@ -21,7 +21,7 @@ bluos-controller discover          # Find devices (mDNS + CI zones)
 bluos-controller status            # Show all device status
 bluos-controller status --scan     # Force rediscovery, then status
 bluos-controller volume 25         # Set volume
-bluos-controller play "Kitchen"    # Play on specific device
+bluos-controller play "Player A"    # Play on specific device
 bluos-controller --help            # Full command reference
 ```
 
