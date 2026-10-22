@@ -9,6 +9,13 @@ From 1.1.1 onward this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) based on
 [Conventional Commits](https://www.conventionalcommits.org). See [RELEASING.md](RELEASING.md).
 
+## [2.0.1](https://github.com/tbaur/blucommand/compare/v2.0.0...v2.0.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* match current BluOS firmware ([#70](https://github.com/tbaur/blucommand/issues/70)) ([ca04af9](https://github.com/tbaur/blucommand/commit/ca04af909299ca706b67ccf6ba3ef7972c3f1e1a))
+
 ## [2.0.0](https://github.com/tbaur/blucommand/compare/v1.4.3...v2.0.0) (2026-10-22)
 
 
