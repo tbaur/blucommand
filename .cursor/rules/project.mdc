@@ -1,21 +1,21 @@
 ---
-description: BluOS Controller project identity and naming
+description: Blucommand project identity and naming
 alwaysApply: true
 ---
 
-# BluOS Controller
+# Blucommand
 
-This repository is **BluOS Controller**. Use these names only:
+This repository is **Blucommand**. Use these names only:
 
 | Kind | Name |
 |------|------|
-| Product | BluOS Controller |
-| GitHub / package / CLI | `bluos-controller` |
+| Product | Blucommand |
+| GitHub / package / CLI | `blucommand` |
 | Classes | `BluOSController`, `BluOSCLI` |
-| Logger | `BluOS` |
-| Env vars | `BLUOS_DEBUG`, `BLUOS_STRUCTURED_LOG` |
-| Config / logs | `~/.config/bluos-controller/` |
-| Keychain service | `bluos-controller` |
-| Temp discovery files | `.bluos-tmp-discovery-*` |
+| Logger | `blucommand` |
+| Env vars | `BLUCOMMAND_DEBUG`, `BLUCOMMAND_STRUCTURED_LOG` |
+| Config / logs | `~/.config/blucommand/` |
+| Keychain service | `blucommand` |
+| Temp discovery files | `.blucommand-tmp-discovery-*` |
 
 Do not introduce other product or package names. The official API PDF host `bluesoundprofessional.com` is an external vendor URL and must stay unchanged.

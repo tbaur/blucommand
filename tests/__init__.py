@@ -1,2 +1,2 @@
-"""Test suite for BluOS Controller."""
+"""Test suite for Blucommand."""
 

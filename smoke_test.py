@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Smoke Test for BluOS Controller
+Smoke Test for Blucommand
 ====================================
 Quick validation that all commands execute without crashing.
 Uses mocked devices to avoid requiring actual hardware.
@@ -33,7 +33,7 @@ from models import PlayerStatus
 
 
 class SmokeTest:
-    """Smoke test runner for all BluOS Controller commands."""
+    """Smoke test runner for all Blucommand commands."""
     
     def __init__(self):
         self.passed = 0
@@ -545,12 +545,12 @@ class SmokeTest:
         with patch('sys.stdout', new=StringIO()) as fake_out:
             cli.print_help()
             output = fake_out.getvalue()
-            assert 'BluOS Controller' in output
+            assert 'Blucommand' in output
             assert 'COMMANDS' in output
     
     def run_all(self) -> None:
         """Run all smoke tests."""
-        print("🔥 Running Smoke Tests for BluOS Controller\n")
+        print("🔥 Running Smoke Tests for Blucommand\n")
         print("=" * 60)
         
         # Discovery and Status

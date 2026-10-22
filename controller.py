@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-BluOS Controller - Core device management logic.
+Blucommand - Core device management logic.
 
 Copyright 2025 tbaur
 
@@ -59,7 +59,7 @@ from validators import (
 )
 from lsdp import LSDPDiscovery
 
-logger = logging.getLogger("BluOS")
+logger = logging.getLogger("blucommand")
 
 
 def parse_bluos_host(value: Optional[str]) -> str:
@@ -331,7 +331,7 @@ class BluOSController:
         safe_service = re.sub(r'[^a-zA-Z0-9._-]', '_', service)
         tmp_file = os.path.join(
             os.path.expanduser("~"),
-            f".bluos-tmp-discovery-{os.getpid()}-{safe_service}",
+            f".blucommand-tmp-discovery-{os.getpid()}-{safe_service}",
         )
         try:
             with open(tmp_file, 'w') as outfile:

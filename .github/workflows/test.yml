@@ -40,7 +40,7 @@ jobs:
         pytest tests/ -v --cov=. --cov-report=xml --cov-report=term-missing --cov-fail-under=80 --tb=short --maxfail=5 --disable-warnings
       continue-on-error: false
       env:
-        BLUOS_DEBUG: 0
+        BLUCOMMAND_DEBUG: 0
         PYTHONUNBUFFERED: 1
         CI: true
     

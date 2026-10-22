@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Utility functions for BluOS Controller.
+Utility functions for Blucommand.
 
 Copyright 2025 tbaur
 
@@ -25,7 +25,7 @@ from typing import Dict, Any, Optional, Callable, Type, TypeVar, Tuple
 from functools import wraps
 from datetime import datetime
 
-logger = logging.getLogger("BluOS")
+logger = logging.getLogger("blucommand")
 
 T = TypeVar('T')
 
@@ -95,7 +95,7 @@ def setup_logging(debug: bool = False, structured: bool = False) -> logging.Logg
         Configured logger instance
     """
     log_level = logging.DEBUG if debug else logging.WARNING
-    logger_instance = logging.getLogger("BluOS")
+    logger_instance = logging.getLogger("blucommand")
     logger_instance.setLevel(log_level)
     
     # Remove existing handlers

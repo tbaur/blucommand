@@ -1,12 +1,12 @@
-# Contributing to BluOS Controller
+# Contributing to Blucommand
 
-Thank you for your interest in contributing to BluOS Controller! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Blucommand! This document provides guidelines and instructions for contributing.
 
 ## How to Contribute
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/tbaur/bluos-controller/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/tbaur/blucommand/issues)
 2. If not, create a new issue with:
    - Clear title and description
    - Steps to reproduce
@@ -16,7 +16,7 @@ Thank you for your interest in contributing to BluOS Controller! This document p
 
 ### Suggesting Features
 
-1. Check [Issues](https://github.com/tbaur/bluos-controller/issues) for existing proposals
+1. Check [Issues](https://github.com/tbaur/blucommand/issues) for existing proposals
 2. Open a new issue with:
    - Clear description of the feature
    - Use case and motivation
@@ -71,8 +71,8 @@ Example: `feat: add group volume command`
 
 ```bash
 # Clone your fork
-git clone git@github.com:YOUR_USERNAME/bluos-controller.git
-cd bluos-controller
+git clone git@github.com:YOUR_USERNAME/blucommand.git
+cd blucommand
 
 # Run installation script
 ./install.sh
@@ -112,7 +112,7 @@ pytest tests/test_validators.py -v
 ## Project Structure
 
 ```
-bluos-controller/
+blucommand/
 ├── main.py              # Entry point
 ├── constants.py         # Constants
 ├── models.py            # Data models

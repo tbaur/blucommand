@@ -21,10 +21,10 @@ import sys
 import logging
 from typing import Optional
 
-logger = logging.getLogger("BluOS")
+logger = logging.getLogger("blucommand")
 
 # Keychain service and account names
-KEYCHAIN_SERVICE = "bluos-controller"
+KEYCHAIN_SERVICE = "blucommand"
 KEYCHAIN_ACCOUNT = "unifi-api-key"
 
 # Characters that are unsafe in subprocess arguments

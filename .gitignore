@@ -30,7 +30,7 @@ Thumbs.db
 # Cache
 cache/
 *.tmp
-.bluos-tmp-discovery-*
+.blucommand-tmp-discovery-*
 
 # Test artifacts
 .pytest_cache/
