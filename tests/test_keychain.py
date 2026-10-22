@@ -6,7 +6,7 @@ import subprocess
 import sys
 from unittest.mock import patch, MagicMock
 
-from keychain import (
+from blucommand.keychain import (
     get_api_key, set_api_key, delete_api_key, has_api_key, is_macos
 )
 
@@ -110,7 +110,7 @@ class TestKeychain:
     
     def test_get_api_key_non_macos(self):
         """Test that Keychain functions return None on non-macOS."""
-        with patch('keychain.is_macos', return_value=False):
+        with patch('blucommand.keychain.is_macos', return_value=False):
             assert get_api_key() is None
             assert set_api_key("test") is False
             assert delete_api_key() is False

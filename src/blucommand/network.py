@@ -24,7 +24,7 @@ import urllib.error
 import logging
 from typing import Optional, Dict
 
-from constants import DEFAULT_TIMEOUT, MAX_XML_SIZE, MAX_RETRIES, RETRY_DELAY_BASE, MAX_RETRY_DELAY
+from blucommand.constants import DEFAULT_TIMEOUT, MAX_XML_SIZE, MAX_RETRIES, RETRY_DELAY_BASE, MAX_RETRY_DELAY
 
 logger = logging.getLogger("blucommand")
 
@@ -78,9 +78,13 @@ class Network:
                     return None
                 return bytes(content)
         except urllib.error.HTTPError as e:
-            # HTTPError is a URLError subclass; swallow so retries are not used.
+            detail = ""
+            try:
+                detail = e.read(200).decode("utf-8", "replace").replace("\n", " ")
+            except Exception:
+                detail = ""
             logger.debug(
-                "HTTP error (%s): %s %s", _url_for_log(url), e.code, e.reason
+                "HTTP error (%s): %s %s %s", _url_for_log(url), e.code, e.reason, detail
             )
             return None
 

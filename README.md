@@ -90,6 +90,8 @@ rm ~/local/bin/blucommand
 
 ## Documentation
 
+The command and the BluOS client live in `src/blucommand`. Tests are in `tests/`. Longer guides are in `docs/`.
+
 - [CHANGELOG](CHANGELOG.md) — version history
 - [CONTRIBUTING](CONTRIBUTING.md) — contribution guidelines
 - [SECURITY](SECURITY.md) — security policy

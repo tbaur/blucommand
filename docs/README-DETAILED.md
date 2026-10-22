@@ -143,7 +143,7 @@ Standalone:
 ### Device Diagnostics
 
 **Comprehensive Diagnostics:**
-- IP address and MAC address (via ARP)
+- IP address and the MAC address reported by the player
 - System uptime from device
 - UniFi network database lookup (if enabled)
 - Raw XML endpoint responses for troubleshooting
@@ -151,11 +151,9 @@ Standalone:
 
 ### Reboot Control
 
-**Device Reboot Options:**
-- Hard reboot (full device restart)
-- Soft reboot (less disruptive, preserves some state)
-- Support for all devices or specific device targeting
-- Safety confirmation prompts
+**Device reboot:**
+- Restarts the player, all devices or one device by name
+- Asks for confirmation before sending
 
 ### Security Features
 
@@ -240,17 +238,12 @@ Run the installation script from the repository:
 ```
 
 The script will:
-- Copy files to `~/.config/blucommand`
+- Copy `src/blucommand` to `~/.config/blucommand`
 - Prompt for configuration settings (UniFi integration, etc.)
 - Create `config.json` with your settings
-- Create a symlink `~/local/bin/blucommand` (add to PATH if needed)
+- Link `~/local/bin/blucommand` at that package
 
-### Manual Installation
-
-1. Clone or copy this repository to `~/.config/blucommand`
-2. Ensure Python 3.10+ is installed
-3. Make `main.py` executable: `chmod +x main.py`
-4. Create `config.json` (see Configuration section)
+Run `./install.sh` again after you pull. There is no separate manual copy of `main.py`.
 
 ## Configuration
 
@@ -426,15 +419,12 @@ Input commands support all devices or specific devices:
 # List inputs for all devices
 blucommand inputs
 
-# List inputs for specific device
+# List inputs for one device
 blucommand inputs "Zone One"
 
-# Set input on all devices
-blucommand inputs "" "Bluetooth"
-
-# Set input on specific device
-blucommand inputs "Zone One" "Bluetooth"
-blucommand inputs "Player A" "Optical 1"
+# Select an input on one device. Bluetooth is a mode, not an input.
+blucommand inputs "Zone One" "Analog Input"
+blucommand inputs "Player A" "Optical Input"
 ```
 
 ### Bluetooth Mode Control
@@ -448,10 +438,10 @@ blucommand bluetooth
 # Show mode for specific device
 blucommand bluetooth "Zone One"
 
-# Set mode on all devices
-blucommand bluetooth "" auto
+# Set the mode on every player
+blucommand bluetooth auto
 
-# Set mode on specific device
+# Set the mode on one player
 blucommand bluetooth "Zone One" manual
 blucommand bluetooth "Player A" auto
 blucommand bluetooth "Zone Two" guest
@@ -469,10 +459,10 @@ blucommand presets
 # List presets for specific device
 blucommand presets "Zone One"
 
-# Play preset on all devices
-blucommand presets "" 1
+# Play preset 1 on every player
+blucommand presets 1
 
-# Play preset on specific device
+# Play a preset on one player
 blucommand presets "Zone One" 1
 ```
 
@@ -533,17 +523,11 @@ blucommand keychain delete
 Reboot commands support all devices or specific devices:
 
 ```bash
-# Hard reboot all devices
+# Reboot all devices
 blucommand reboot
 
-# Hard reboot specific device
+# Reboot one device
 blucommand reboot "Zone One"
-
-# Soft reboot all devices
-blucommand reboot --soft
-
-# Soft reboot specific device
-blucommand reboot --soft "Player A"
 ```
 
 ## Debug Mode & Logging
@@ -589,38 +573,12 @@ This format is ideal for log aggregation systems, monitoring tools, and automate
 
 ```
 blucommand/
-├── main.py              # Entry point
-├── constants.py         # Constants and configuration
-├── models.py            # Data models
-├── validators.py        # Input validation and sanitization
-├── config.py            # Configuration management
-├── network.py           # Network I/O operations
-├── utils.py             # Utility functions
-├── controller.py        # Core controller logic
-├── cli.py               # CLI interface
-├── install.sh           # Installation script
-├── config.json          # Configuration file (generated)
-├── cache/               # Cache directory (generated)
-└── tests/               # Comprehensive test suite (263 tests, 82% coverage)
-    ├── test_cli_commands.py          # CLI command tests
-    ├── test_cli_coverage.py          # CLI edge cases and error paths
-    ├── test_cli_multi_device.py     # Multi-device support tests
-    ├── test_config.py               # Configuration management tests
-    ├── test_controller.py           # Core controller logic tests
-    ├── test_controller_coverage.py   # Controller edge cases
-    ├── test_controller_discovery.py # Discovery method tests
-    ├── test_controller_new_features.py # New feature tests
-    ├── test_controller_xml.py       # XML parsing and security tests
-    ├── test_integration.py           # End-to-end integration tests
-    ├── test_lsdp.py                 # LSDP discovery basic tests
-    ├── test_lsdp_comprehensive.py   # LSDP comprehensive tests
-    ├── test_main.py                 # Main entry point tests
-    ├── test_main_coverage.py        # Main command routing tests
-    ├── test_network.py              # Network operation tests
-    ├── test_utils.py                # Utility function tests
-    ├── test_utils_comprehensive.py  # Comprehensive utility tests
-    ├── test_utils_retry.py          # Retry logic and rate limiting tests
-    └── test_validators.py           # Input validation tests
+├── src/blucommand/      # Command, discovery, and BluOS API
+├── tests/               # Pytest suite
+├── docs/                # Longer guides
+├── install.sh           # Local install into ~/local/bin
+├── pyproject.toml
+└── README.md
 ```
 
 ## Development
@@ -694,39 +652,39 @@ See `tests/README.md` for detailed test documentation.
 
 The codebase is organized into modular components:
 
-- **models.py**: Immutable data classes using `@dataclass` for `UniFiClient` and `PlayerStatus`
-- **validators.py**: Comprehensive input validation and sanitization
+- **src/blucommand/models.py**: Immutable data classes using `@dataclass` for `UniFiClient` and `PlayerStatus`
+- **src/blucommand/validators.py**: Comprehensive input validation and sanitization
   - IP address validation (rejects invalid, loopback, multicast, reserved, link-local)
   - Hostname validation before subprocess calls
   - Volume and timeout range validation
   - Configuration value validation on load
-- **config.py**: Configuration file management
+- **src/blucommand/config.py**: Configuration file management
   - Supports JSON (preferred) and INI (backward compatibility)
   - Automatic default config creation
   - Value validation on load
   - Secure file permissions (600)
-- **network.py**: HTTP requests and network operations
+- **src/blucommand/network.py**: HTTP requests and network operations
   - GET and POST requests with timeout support
   - SSL context management (disabled for local IoT)
   - Size limit enforcement
   - Comprehensive error handling
-- **utils.py**: Utility functions
+- **src/blucommand/utils.py**: Utility functions
   - Byte and rate formatting (human-readable)
   - Uptime formatting
   - Atomic file writes (prevents corruption)
   - Logging setup
-- **controller.py**: Core device management logic
+- **src/blucommand/controller.py**: Core device management logic
   - Dual discovery (mDNS and LSDP)
   - Device information retrieval
   - UniFi integration
   - XML parsing with security protections
   - All BluOS API endpoint implementations
-- **cli.py**: Command-line interface
+- **src/blucommand/cli.py**: Command-line interface
   - Multi-device support with pattern matching
   - Color-coded output formatting
   - Comprehensive help documentation
   - Thread pool execution for concurrent operations
-- **lsdp.py**: LSDP discovery protocol
+- **src/blucommand/lsdp.py**: LSDP discovery protocol
   - UDP broadcast implementation
   - Binary packet parsing (Query, Announce, Delete)
   - Class ID support (Players, Servers, Hubs)

@@ -5,7 +5,7 @@ import pytest
 import socket
 from unittest.mock import Mock, patch, MagicMock
 
-from lsdp import LSDPDiscovery, LSDPDevice, LSDP_PORT, CLASS_BLUOS_PLAYER
+from blucommand.lsdp import LSDPDiscovery, LSDPDevice, LSDP_PORT, CLASS_BLUOS_PLAYER
 
 
 class TestLSDPDiscovery:
@@ -24,42 +24,41 @@ class TestLSDPDiscovery:
         assert device.class_id == CLASS_BLUOS_PLAYER
         assert device.txt_records["name"] == "Test Speaker"
     
-    @patch('lsdp.time.sleep')
-    @patch('socket.socket')
-    def test_discover_no_devices(self, mock_socket, _mock_sleep):
+    @patch("blucommand.lsdp.ipv4_broadcast_addresses", return_value=["192.0.2.255"])
+    @patch("socket.socket")
+    def test_discover_no_devices(self, mock_socket, _mock_broadcast):
         """Test discovery with no devices found."""
         mock_sock = MagicMock()
         mock_socket.return_value = mock_sock
         mock_sock.recvfrom.side_effect = socket.timeout()
-        
-        discovery = LSDPDiscovery(timeout=1)
+
+        discovery = LSDPDiscovery(timeout=0.05)
         result = discovery.discover()
-        
+
         assert result == []
+        mock_sock.bind.assert_called_with(("0.0.0.0", LSDP_PORT))
         mock_sock.sendto.assert_called()
-    
-    @patch('lsdp.time.sleep')
-    @patch('socket.socket')
-    def test_discover_with_devices(self, mock_socket, _mock_sleep):
-        """Test discovery with devices."""
+
+    @patch("blucommand.lsdp.ipv4_broadcast_addresses", return_value=["192.0.2.255"])
+    @patch("socket.socket")
+    def test_discover_with_devices(self, mock_socket, _mock_broadcast):
+        """Test discovery keeps a primary player's address."""
         mock_sock = MagicMock()
         mock_socket.return_value = mock_sock
-        
-        # Mock valid LSDP announce packet
-        packet = b'\x06LSDP\x01'  # Header
-        packet += b'\x0A\x41'  # Announce message
-        packet += b'\x06aa:bb:cc'  # Node ID
-        packet += b'\x04\xc0\xa8\x01\x64'  # IPv4 address (192.168.1.100)
-        packet += b'\x01'  # Count
-        packet += b'\x00\x01'  # Class ID (BluOS Player)
-        packet += b'\x00'  # TXT count
-        
-        mock_sock.recvfrom.return_value = (packet, ('192.168.1.100', LSDP_PORT))
-        
-        discovery = LSDPDiscovery(timeout=1)
+
+        packet = bytes([6]) + b"LSDP" + bytes([1])
+        node = b"aabbcc"
+        ip = bytes([192, 168, 1, 100])
+        body = bytearray([0, 0x41, len(node), *node, len(ip), *ip, 1, 0, 1, 0])
+        body[0] = len(body)
+        packet += bytes(body)
+
+        mock_sock.recvfrom.return_value = (packet, ("192.168.1.100", LSDP_PORT))
+
+        discovery = LSDPDiscovery(timeout=0.05)
         result = discovery.discover()
-        
-        assert isinstance(result, list)
+
+        assert "192.168.1.100:11000" in result
     
     def test_build_query_packet(self):
         """Test query packet building."""

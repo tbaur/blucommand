@@ -4,9 +4,9 @@ Tests for new controller features (playback, queue, inputs, etc.).
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from controller import BluOSController
-from models import PlayerStatus
-from constants import BLUOS_PORT
+from blucommand.controller import BluOSController
+from blucommand.models import PlayerStatus
+from blucommand.constants import BLUOS_PORT
 
 
 class TestPlaybackControls:
@@ -15,12 +15,12 @@ class TestPlaybackControls:
     @pytest.fixture
     def controller(self):
         """Create controller instance."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             ctl.ips = ["192.168.1.100"]
             return ctl
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_play(self, mock_network, controller):
         """Test play command."""
         mock_network.get.return_value = b"OK"
@@ -30,7 +30,7 @@ class TestPlaybackControls:
         call_url = mock_network.get.call_args[0][0]
         assert f"http://192.168.1.100:{BLUOS_PORT}/Play" in call_url
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_pause_device(self, mock_network, controller):
         """Test pause command."""
         mock_network.get.return_value = b"OK"
@@ -39,7 +39,7 @@ class TestPlaybackControls:
         call_url = mock_network.get.call_args[0][0]
         assert "/Pause" in call_url
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_stop(self, mock_network, controller):
         """Test stop command."""
         mock_network.get.return_value = b"OK"
@@ -48,7 +48,7 @@ class TestPlaybackControls:
         call_url = mock_network.get.call_args[0][0]
         assert "/Stop" in call_url
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_skip(self, mock_network, controller):
         """Test skip command."""
         mock_network.get.return_value = b"OK"
@@ -57,7 +57,7 @@ class TestPlaybackControls:
         call_url = mock_network.get.call_args[0][0]
         assert "/Skip" in call_url
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_previous(self, mock_network, controller):
         """Test previous command."""
         mock_network.get.return_value = b"OK"
@@ -78,11 +78,11 @@ class TestQueueManagement:
     @pytest.fixture
     def controller(self):
         """Create controller instance."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             return ctl
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_get_queue(self, mock_network, controller):
         """Test getting queue via v1.7 /Playlist."""
         xml_content = b"""<?xml version="1.0"?>
@@ -104,7 +104,7 @@ class TestQueueManagement:
         call_url = mock_network.get.call_args[0][0]
         assert "/Playlist?" in call_url
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_clear_queue(self, mock_network, controller):
         """Test clearing queue via /Clear."""
         mock_network.get.return_value = b"OK"
@@ -113,7 +113,7 @@ class TestQueueManagement:
         call_url = mock_network.get.call_args[0][0]
         assert call_url.endswith("/Clear")
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_move_queue_item(self, mock_network, controller):
         """Test moving queue item via /Move."""
         mock_network.get.return_value = b"<moved>moved</moved>"
@@ -131,11 +131,11 @@ class TestInputManagement:
     @pytest.fixture
     def controller(self):
         """Create controller instance."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             return ctl
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_get_inputs(self, mock_network, controller):
         """Test getting inputs from capture settings."""
         xml_content = b"""<?xml version="1.0"?>
@@ -154,10 +154,10 @@ class TestInputManagement:
         assert result[0]["name"] == "Analog Input"
         assert result[0]["id"] == "analog-1"
         assert result[1]["id"] == "spdif-1"
-        call_url = mock_network.get.call_args[0][0]
-        assert "Settings?id=capture" in call_url
+        call_urls = [call.args[0] for call in mock_network.get.call_args_list]
+        assert any("Settings?id=capture" in url for url in call_urls)
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_set_input(self, mock_network, controller):
         """Test setting input via inputTypeIndex."""
         capture_xml = b"""<?xml version="1.0"?>
@@ -166,11 +166,15 @@ class TestInputManagement:
             <menuGroup id="capture-input0" displayName="Analog Input" icon="/images/capture/ic_analoginput.png"></menuGroup>
           </menuGroup>
         </settings>"""
-        mock_network.get.side_effect = [capture_xml, b"<state>stream</state>"]
+        mock_network.get.side_effect = [
+            capture_xml,
+            b"<status><service>Library</service></status>",
+            b"<state>stream</state>",
+        ]
         result = controller.set_input("192.168.1.100", "Analog Input")
         assert result is True
         call_url = mock_network.get.call_args[0][0]
-        assert "Play?inputTypeIndex=analog-1" in call_url
+        assert "Play?inputType=analog&index=1" in call_url
 
 
 class TestBluetoothControl:
@@ -179,11 +183,11 @@ class TestBluetoothControl:
     @pytest.fixture
     def controller(self):
         """Create controller instance."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             return ctl
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_get_bluetooth_mode(self, mock_network, controller):
         """Test getting Bluetooth mode from capture settings."""
         xml_content = b"""<?xml version="1.0"?>
@@ -199,7 +203,7 @@ class TestBluetoothControl:
         call_url = mock_network.get.call_args[0][0]
         assert "Settings?id=capture" in call_url
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_set_bluetooth_mode(self, mock_network, controller):
         """Test setting Bluetooth mode."""
         mock_network.get.return_value = b"OK"
@@ -220,11 +224,11 @@ class TestPresetManagement:
     @pytest.fixture
     def controller(self):
         """Create controller instance."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             return ctl
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_get_presets(self, mock_network, controller):
         """Test getting presets."""
         xml_content = b"""<?xml version="1.0"?>
@@ -247,7 +251,7 @@ class TestPresetManagement:
             assert result is not None
             assert len(result) == 1
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_play_preset(self, mock_network, controller):
         """Test playing preset."""
         mock_network.get.return_value = b"OK"
@@ -263,11 +267,11 @@ class TestSyncGroups:
     @pytest.fixture
     def controller(self):
         """Create controller instance."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             return ctl
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_add_sync_slave(self, mock_network, controller):
         """Test adding sync slave."""
         mock_network.get.return_value = (
@@ -279,7 +283,7 @@ class TestSyncGroups:
         assert "AddSlave?slave=" in call_url
         assert "port=11000" in call_url
     
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_remove_sync_slave(self, mock_network, controller):
         """Test removing sync slave."""
         # RemoveSlave response + SyncStatus verify (no master)
@@ -293,7 +297,7 @@ class TestSyncGroups:
         assert "RemoveSlave?slave=" in call_url
         assert "port=11000" in call_url
 
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_remove_sync_slave_rejects_error_xml(self, mock_network, controller):
         """BluOS <error> bodies must not count as a successful break."""
         err = b"<error>no slave available as new master</error>"
@@ -305,7 +309,7 @@ class TestSyncGroups:
         )
         assert result is False
 
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_remove_sync_slave_reparents_orphan(self, mock_network, controller):
         """Orphaned reconnecting slave is cleared via a live donor primary."""
         controller.ips = ["192.168.1.30:11000", "192.168.1.31:11000"]
@@ -329,7 +333,7 @@ class TestSyncGroups:
         assert any("192.168.1.30:11000/AddSlave" in u for u in urls)
         assert any("192.168.1.30:11000/RemoveSlave" in u for u in urls)
 
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_player_is_ungrouped_states(self, mock_network, controller):
         """Ungrouped check distinguishes standalone, grouped, and unreachable."""
         mock_network.get.return_value = b"<SyncStatus name='x'/>"
@@ -343,7 +347,7 @@ class TestSyncGroups:
         mock_network.get.return_value = None
         assert controller._player_is_ungrouped("192.168.1.31:11000") is None
 
-    @patch('controller.Network')
+    @patch('blucommand.controller.Network')
     def test_remove_sync_slave_unreachable_not_success(self, mock_network, controller):
         """RemoveSlave HTTP body is not enough if the slave cannot be verified."""
         controller.ips = []

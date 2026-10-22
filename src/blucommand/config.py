@@ -22,9 +22,9 @@ import configparser
 import logging
 from typing import Any, Optional
 
-from constants import CONFIG_FILE, CONFIG_FILE_JSON, DEFAULT_CONFIG_CONTENT
-from validators import validate_config_value
-from keychain import get_api_key
+from blucommand.constants import CONFIG_FILE, CONFIG_FILE_JSON, DEFAULT_CONFIG_CONTENT
+from blucommand.validators import validate_config_value
+from blucommand.keychain import get_api_key
 
 logger = logging.getLogger("blucommand")
 

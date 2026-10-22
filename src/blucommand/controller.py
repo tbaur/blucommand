@@ -30,7 +30,7 @@ from typing import List, Dict, Optional, Set, Tuple, TypeGuard
 from dataclasses import asdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from constants import (
+from blucommand.constants import (
     BLUOS_MDNS_SERVICES,
     CACHE_FILE,
     UNIFI_CACHE_FILE,
@@ -44,11 +44,11 @@ from constants import (
     DISCOVERY_LSDP,
     DISCOVERY_BOTH,
 )
-from models import UniFiClient, PlayerStatus
-from config import Config
-from network import Network
-from utils import atomic_write, get_rate_limiter
-from validators import (
+from blucommand.models import UniFiClient, PlayerStatus
+from blucommand.config import Config
+from blucommand.network import Network
+from blucommand.utils import atomic_write, get_rate_limiter
+from blucommand.validators import (
     validate_ip,
     sanitize_ip,
     validate_hostname,
@@ -57,7 +57,7 @@ from validators import (
     format_endpoint,
     sanitize_endpoint,
 )
-from lsdp import LSDPDiscovery
+from blucommand.lsdp import LSDPDiscovery
 
 logger = logging.getLogger("blucommand")
 
@@ -112,6 +112,52 @@ def parse_sync_status_root(root: ET.Element) -> tuple[str, str, List[str]]:
     return master, group, slaves
 
 
+def _muted_from_levels(
+    mute_raw: Optional[str],
+    volume: Optional[int],
+    mute_volume: Optional[str],
+) -> Optional[bool]:
+    """
+    Read mute from firmware that still sends ``mute``, or from ``muteVolume``.
+
+    Firmware 4.16+ often omits ``mute`` and only sets ``muteVolume`` while
+    ``volume`` is 0.
+    """
+    if mute_raw not in (None, ""):
+        return str(mute_raw).strip().lower() in {"1", "true"}
+    if mute_volume not in (None, "") and volume == 0:
+        return True
+    return None
+
+
+def _mark_selected_input(inputs: List[Dict], active: Dict[str, str]) -> None:
+    """Mark the capture source that ``/Status`` says is playing."""
+    type_index = (active.get("type_index") or "").lower()
+    input_id = (active.get("input_id") or "").lower()
+    name = (active.get("name") or "").lower()
+    for item in inputs:
+        item["selected"] = bool(
+            (type_index and item.get("id", "").lower() == type_index)
+            or (input_id and item.get("capture_id", "").lower() == input_id)
+            or (name and item.get("name", "").lower() == name)
+        )
+
+
+def _control_succeeded(content: Optional[bytes]) -> bool:
+    """True for a non-error body. An empty 200 and a plain-text ack both count."""
+    if content is None:
+        return False
+    if not content.strip():
+        return True
+    try:
+        root = ET.fromstring(content)
+    except ET.ParseError:
+        return True
+    if root.tag.lower() == "error" or root.find("error") is not None:
+        return False
+    return True
+
+
 class BluOSController:
     """Main controller for BluOS device management."""
     
@@ -127,7 +173,7 @@ class BluOSController:
 
         mDNS browses ``_musc._tcp`` (primary) and ``_musp._tcp`` (CI secondary
         zones) and keeps the SRV port. LSDP is used when configured / as fallback
-        and yields ``ip:11000`` (primary only).
+        and keeps the announced port (primary defaults to 11000).
         """
         if not force_refresh and self._load_discovery_cache():
             return
@@ -221,7 +267,7 @@ class BluOSController:
         return sorted(endpoints)
 
     def _discover_lsdp(self, timeout: int) -> List[str]:
-        """Discover chassis IPs using LSDP (normalized to ``ip:11000`` by caller)."""
+        """Discover ``ip:port`` endpoints via LSDP, including secondary-zone ports."""
         try:
             return LSDPDiscovery(timeout=timeout).discover()
         except Exception as e:
@@ -656,20 +702,31 @@ class BluOSController:
             return "ERROR_PARSE"
     
     def get_sys_uptime(self, ip: str) -> str:
-        """Get system uptime from device diagnostics page."""
+        """Read uptime from the player web UI on port 80.
+
+        Current firmware uses ``<dt>Uptime:</dt><dd>…</dd>``. Older pages used
+        adjacent divs. ``:11000/diagnostics`` returns 404.
+        """
         sanitized_ip = sanitize_ip(ip)
         if not sanitized_ip:
             return "N/A"
         url = f"http://{sanitized_ip}/diagnostics"
-        content = Network.get(url, timeout=1, max_retries=1)
-        if content:
-            try:
-                html = content.decode('utf-8', errors='ignore')
-                match = re.search(r'Uptime:</div>\s*<div[^>]*>(.*?)</div>', html, re.IGNORECASE)
-                if match:
-                    return match.group(1).strip()
-            except Exception:
-                pass
+        content = Network.get(url, timeout=4, max_retries=1)
+        if not content:
+            return "N/A"
+        try:
+            html = content.decode("utf-8", errors="ignore")
+        except Exception:
+            return "N/A"
+        patterns = (
+            r"Uptime:\s*</dt>\s*<dd>\s*([^<]+?)\s*</dd>",
+            r"Uptime:\s*</div>\s*<div[^>]*>\s*([^<]+?)\s*</div>",
+            r"Uptime:\s*</[^>]+>\s*([^<\s]+)",
+        )
+        for pattern in patterns:
+            match = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
+            if match:
+                return match.group(1).strip()
         return "N/A"
     
     def _safe_parse_xml(self, xml_data: bytes, ip: str) -> Optional[ET.Element]:
@@ -789,7 +846,7 @@ class BluOSController:
         try:
             sync_url = self._api_url(endpoint_key, "/SyncStatus")
             status_url = self._api_url(endpoint_key, "/Status")
-            # One attempt each — retries on dead cache entries make `bsc volume` hang.
+            # One attempt each — retries on dead cache entries make `blucommand volume` hang.
             sync_xml = (
                 Network.get(sync_url, timeout=2, max_retries=1) if sync_url else None
             )
@@ -821,6 +878,13 @@ class BluOSController:
                         sync_volume_set = True
                     except ValueError:
                         pass
+                sync_muted = _muted_from_levels(
+                    root.attrib.get('mute'),
+                    status.volume if sync_volume_set else None,
+                    root.attrib.get('muteVolume'),
+                )
+                if sync_muted is not None:
+                    status.muted = sync_muted
                 
                 batt = root.find('battery')
                 if batt is not None:
@@ -829,19 +893,28 @@ class BluOSController:
             if status_xml:
                 root = self._safe_parse_xml(status_xml, endpoint_key)
                 if root is not None:
+                    volume_text = root.findtext('volume')
                     if not sync_volume_set:
                         try:
-                            status.volume = max(0, min(100, int(root.findtext('volume', '0'))))
+                            status.volume = max(0, min(100, int(volume_text or '0')))
                         except ValueError:
                             status.volume = 0
-                    status.state = root.findtext('state', 'stop')
-                    status.service = root.findtext('service', 'Library/Input')
+                    status_muted = _muted_from_levels(
+                        root.findtext('mute'),
+                        status.volume,
+                        root.findtext('muteVolume'),
+                    )
+                    if status_muted is not None:
+                        status.muted = status_muted
+                    status.state = root.findtext('state', 'stop') or 'stop'
+                    service = root.findtext('service') or ''
+                    service_name = root.findtext('serviceName') or ''
+                    if service == 'Raat':
+                        service = 'Roon'
+                    status.service = service_name or service
                     status.track = root.findtext('title1') or root.findtext('title') or ''
                     status.artist = root.findtext('artist', '')
                     status.album = root.findtext('album', '')
-                    
-                    if status.service == 'Raat':
-                        status.service = 'Roon'
                 elif status.name == 'Unknown':
                     status.status = "xml_error"
             
@@ -851,6 +924,8 @@ class BluOSController:
                 status.full_model = status.model
             
             status.unifi = self.unifi_map.get(sanitized_ip)
+            if status.status == "offline" and (sync_xml or status_xml):
+                status.status = "online"
         
         except ET.ParseError as e:
             logger.error(f"XML Parse Error for {endpoint_key}: {e}")
@@ -883,23 +958,23 @@ class BluOSController:
     
     def play(self, ip: str) -> bool:
         """Start/resume playback on device."""
-        return self._endpoint_get(ip, "/Play") is not None
+        return _control_succeeded(self._endpoint_get(ip, "/Play"))
     
     def pause_device(self, ip: str) -> bool:
         """Pause playback on device."""
-        return self._endpoint_get(ip, "/Pause") is not None
+        return _control_succeeded(self._endpoint_get(ip, "/Pause"))
     
     def stop(self, ip: str) -> bool:
         """Stop playback on device."""
-        return self._endpoint_get(ip, "/Stop") is not None
+        return _control_succeeded(self._endpoint_get(ip, "/Stop"))
     
     def skip(self, ip: str) -> bool:
         """Skip to next track."""
-        return self._endpoint_get(ip, "/Skip") is not None
+        return _control_succeeded(self._endpoint_get(ip, "/Skip"))
     
     def previous(self, ip: str) -> bool:
         """Go to previous track."""
-        return self._endpoint_get(ip, "/Back") is not None
+        return _control_succeeded(self._endpoint_get(ip, "/Back"))
     
     # BluOS Custom Integration API v1.7 — play queue is /Playlist; inputs via
     # /Settings?id=capture&schemaVersion=32; Bluetooth set via /audiomodes.
@@ -976,11 +1051,11 @@ class BluOSController:
 
     def clear_queue(self, ip: str) -> bool:
         """Clear the play queue (BluOS v1.7: GET /Clear)."""
-        return self._endpoint_get(ip, "/Clear") is not None
+        return _control_succeeded(self._endpoint_get(ip, "/Clear"))
 
     def move_queue_item(self, ip: str, from_index: int, to_index: int) -> bool:
         """Move a play-queue track (BluOS v1.7: GET /Move?old=&new=)."""
-        return self._endpoint_get(ip, f"/Move?old={from_index}&new={to_index}") is not None
+        return _control_succeeded(self._endpoint_get(ip, f"/Move?old={from_index}&new={to_index}"))
 
     def get_inputs(self, ip: str) -> Optional[List[Dict]]:
         """List capture inputs (BluOS v1.7: GET /Settings?id=capture&schemaVersion=32)."""
@@ -1009,16 +1084,33 @@ class BluOSController:
                     type_name = self._input_type_from_capture(name, icon)
                     type_counts[type_name] = type_counts.get(type_name, 0) + 1
                     type_index = f"{type_name}-{type_counts[type_name]}"
+                    capture_key = group_id.removeprefix("capture-")
                     inputs.append({
                         "name": name,
                         "type": type_name,
                         "id": type_index,
+                        "capture_id": capture_key,
                         "selected": False,
                     })
+                _mark_selected_input(inputs, self._active_capture(endpoint_key))
                 return inputs
             except Exception as e:
                 logger.debug(f"Inputs parse error for {endpoint_key}: {e}")
         return None
+
+    def _active_capture(self, endpoint_key: str) -> Dict[str, str]:
+        """Return the playing capture source from ``/Status``, if any."""
+        raw = self._endpoint_get(endpoint_key, "/Status", timeout=2)
+        if not raw:
+            return {}
+        root = self._safe_parse_xml(raw, endpoint_key)
+        if root is None or (root.findtext("service") or "") != "Capture":
+            return {}
+        return {
+            "type_index": root.findtext("inputTypeIndex") or "",
+            "input_id": root.findtext("inputId") or "",
+            "name": root.findtext("title1") or root.findtext("title") or "",
+        }
 
     def set_input(self, ip: str, input_name: str) -> bool:
         """Select an input by display name or inputTypeIndex (BluOS v1.7: /Play?inputTypeIndex=)."""
@@ -1048,7 +1140,19 @@ class BluOSController:
                 return False
             type_index = match["id"]
         encoded = urllib.parse.quote(type_index, safe="-")
-        return self._endpoint_get(endpoint_key, f"/Play?inputTypeIndex={encoded}") is not None
+        type_name, _, index = type_index.rpartition("-")
+        if not type_name:
+            type_name, index = type_index, "1"
+        # Firmware 4.18 rejects /Play?inputTypeIndex= (404). inputType plus index works.
+        # Keep the documented form as a fallback for players that only accept it.
+        paths = (
+            f"/Play?inputType={urllib.parse.quote(type_name)}&index={urllib.parse.quote(index)}",
+            f"/Play?inputTypeIndex={encoded}",
+        )
+        for path in paths:
+            if _control_succeeded(self._endpoint_get(endpoint_key, path)):
+                return True
+        return False
 
     def get_bluetooth_mode(self, ip: str) -> Optional[str]:
         """Read Bluetooth mode from capture settings (v1.7 has no /AudioModes GET)."""
@@ -1076,18 +1180,22 @@ class BluOSController:
         """Set Bluetooth mode (0=Manual, 1=Automatic, 2=Guest, 3=Disabled)."""
         if mode not in (0, 1, 2, 3):
             return False
-        return self._endpoint_get(ip, f"/audiomodes?bluetoothAutoplay={mode}") is not None
+        return _control_succeeded(self._endpoint_get(ip, f"/audiomodes?bluetoothAutoplay={mode}"))
     
-    def soft_reboot(self, ip: str) -> bool:
-        """Perform soft reboot (chassis-level; uses IP without BluOS port)."""
+    def reboot(self, ip: str) -> bool:
+        """Restart the player through the web UI on port 80.
+
+        POST ``/reboot`` with ``yes=1`` is the form the player serves.
+        The BluOS port has no reboot handler.
+        """
         resolved = self._resolve_endpoint(ip)
         if not resolved:
             return False
         sanitized_ip, _port = resolved
         get_rate_limiter().wait_if_needed(sanitized_ip)
-        res = Network.post(f"http://{sanitized_ip}/Reboot", data={"soft": "1"}, timeout=2)
+        res = Network.post(f"http://{sanitized_ip}/reboot", data={"yes": "1"}, timeout=5)
         return res is not None
-    
+
     def get_presets(self, ip: str) -> Optional[List[Dict]]:
         """Get available presets."""
         resolved = self._resolve_endpoint(ip)
@@ -1113,7 +1221,7 @@ class BluOSController:
     
     def play_preset(self, ip: str, preset_id: int) -> bool:
         """Play a preset."""
-        return self._endpoint_get(ip, f"/Preset?id={preset_id}") is not None
+        return _control_succeeded(self._endpoint_get(ip, f"/Preset?id={preset_id}"))
     
     @staticmethod
     def _bluos_response_ok(content: Optional[bytes]) -> TypeGuard[bytes]:

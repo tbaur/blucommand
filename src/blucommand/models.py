@@ -19,7 +19,7 @@ limitations under the License.
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from constants import BLUOS_PORT
+from blucommand.constants import BLUOS_PORT
 
 
 @dataclass
@@ -49,6 +49,7 @@ class PlayerStatus:
     status: str = "offline"
     service: str = ""
     volume: int = 0
+    muted: bool = False
     db: str = ""             # RSSI
     fw: str = ""
     master: str = ""         # Endpoint (ip or ip:port) of master if slave

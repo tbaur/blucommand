@@ -25,22 +25,10 @@ classifiers = [
 ]
 
 [project.scripts]
-blucommand = "main:main"
+blucommand = "blucommand.main:main"
 
-[tool.setuptools]
-py-modules = [
-    "cli",
-    "config",
-    "constants",
-    "controller",
-    "keychain",
-    "lsdp",
-    "main",
-    "models",
-    "network",
-    "utils",
-    "validators",
-]
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [project.urls]
 Homepage = "https://github.com/tbaur/blucommand"

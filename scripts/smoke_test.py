@@ -21,15 +21,15 @@ limitations under the License.
 """
 import sys
 import os
-from unittest.mock import patch, MagicMock, Mock
+from pathlib import Path
 from io import StringIO
 
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from unittest.mock import patch, MagicMock, Mock
 
-from controller import BluOSController
-from cli import BluOSCLI
-from models import PlayerStatus
+from blucommand.controller import BluOSController
+from blucommand.cli import BluOSCLI
+from blucommand.models import PlayerStatus
 
 
 class SmokeTest:
@@ -102,7 +102,6 @@ class SmokeTest:
         controller.play_preset = MagicMock(return_value=True)
         controller.add_sync_slave = MagicMock(return_value=True)
         controller.remove_sync_slave = MagicMock(return_value=True)
-        controller.soft_reboot = MagicMock(return_value=True)
         controller.sync_unifi = MagicMock(return_value='SUCCESS:2')
         
         return controller
@@ -516,18 +515,6 @@ class SmokeTest:
              patch('builtins.input', return_value='n'):  # Don't actually reboot
             cli.reboot(args)
     
-    def test_soft_reboot(self) -> None:
-        """Test soft reboot command."""
-        controller = self.setup_mock_controller()
-        cli = BluOSCLI(controller)
-        
-        args = Mock()
-        args.target = None
-        
-        with patch('sys.stdout', new=StringIO()), \
-             patch('builtins.input', return_value='n'):  # Don't actually reboot
-            cli.soft_reboot(args)
-    
     def test_diagnose(self) -> None:
         """Test diagnose command."""
         controller = self.setup_mock_controller()
@@ -600,7 +587,6 @@ class SmokeTest:
         
         # System
         self.test("reboot", self.test_reboot)
-        self.test("soft_reboot", self.test_soft_reboot)
         self.test("diagnose", self.test_diagnose)
         
         # Help

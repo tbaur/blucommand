@@ -5,7 +5,7 @@ import pytest
 import time
 from unittest.mock import patch, MagicMock
 
-from utils import retry_with_backoff, RateLimiter, get_rate_limiter, StructuredFormatter
+from blucommand.utils import retry_with_backoff, RateLimiter, get_rate_limiter, StructuredFormatter
 import logging
 
 
@@ -269,4 +269,16 @@ class TestStructuredFormatter:
         data = json.loads(output)
         assert data['device_ip'] == "192.168.1.100"
         assert data['operation'] == "play"
+
+
+class TestRetryEdge:
+    """Zero attempts has nothing to retry."""
+
+    def test_zero_retries_raises(self):
+        @retry_with_backoff(max_retries=0)
+        def unused():
+            return "unused"
+
+        with pytest.raises(Exception, match="Retry failed"):
+            unused()
 

@@ -5,9 +5,9 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from argparse import Namespace
 
-from cli import BluOSCLI
-from controller import BluOSController
-from models import PlayerStatus
+from blucommand.cli import BluOSCLI
+from blucommand.controller import BluOSController
+from blucommand.models import PlayerStatus
 
 
 class TestMultiDeviceSupport:
@@ -16,7 +16,7 @@ class TestMultiDeviceSupport:
     @pytest.fixture
     def controller(self):
         """Create controller instance with multiple devices."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             ctl.ips = ["192.168.1.100", "192.168.1.101", "192.168.1.102"]
             return ctl
@@ -69,7 +69,7 @@ class TestMultiDeviceSupport:
             devices = cli._get_matching_devices("Player C")
             assert len(devices) == 0
     
-    @patch('cli.Network')
+    @patch('blucommand.cli.Network')
     def test_play_all_devices(self, mock_network, cli, mock_devices):
         """Test play command on all devices."""
         mock_network.get.return_value = b"OK"
@@ -80,7 +80,7 @@ class TestMultiDeviceSupport:
                 cli.play(args)
                 assert mock_play.call_count == 3
     
-    @patch('cli.Network')
+    @patch('blucommand.cli.Network')
     def test_play_specific_device(self, mock_network, cli, mock_devices):
         """Test play command on specific device."""
         mock_network.get.return_value = b"OK"
@@ -93,7 +93,7 @@ class TestMultiDeviceSupport:
                 assert mock_play.call_count == 1
                 mock_play.assert_called_with("192.168.1.100:11000")
     
-    @patch('cli.Network')
+    @patch('blucommand.cli.Network')
     def test_queue_clear_all_devices(self, mock_network, cli, mock_devices):
         """Test queue clear on all devices."""
         args = Namespace(target=None, action='clear', from_index=None, to_index=None)
@@ -103,7 +103,7 @@ class TestMultiDeviceSupport:
                 cli.queue(args)
                 assert mock_clear.call_count == 3
     
-    @patch('cli.Network')
+    @patch('blucommand.cli.Network')
     def test_inputs_set_all_devices(self, mock_network, cli, mock_devices):
         """Test setting input on all devices."""
         args = Namespace(target=None, input="Bluetooth")
@@ -116,7 +116,7 @@ class TestMultiDeviceSupport:
                 for call in mock_set.call_args_list:
                     assert call[0][1] == "Bluetooth"
     
-    @patch('cli.Network')
+    @patch('blucommand.cli.Network')
     def test_bluetooth_set_all_devices(self, mock_network, cli, mock_devices):
         """Test setting Bluetooth mode on all devices."""
         args = Namespace(target=None, mode="auto")
@@ -129,7 +129,7 @@ class TestMultiDeviceSupport:
                 for call in mock_set.call_args_list:
                     assert call[0][1] == 1
     
-    @patch('cli.Network')
+    @patch('blucommand.cli.Network')
     def test_presets_play_all_devices(self, mock_network, cli, mock_devices):
         """Test playing preset on all devices."""
         args = Namespace(target=None, preset_id=1)
@@ -142,7 +142,7 @@ class TestMultiDeviceSupport:
                 for call in mock_play.call_args_list:
                     assert call[0][1] == 1
     
-    @patch('cli.Network')
+    @patch('blucommand.cli.Network')
     def test_reboot_with_target(self, mock_network, cli, mock_devices):
         """Test reboot with device target."""
         matching = [d for d in mock_devices if d.name == "Zone One"]
@@ -150,7 +150,7 @@ class TestMultiDeviceSupport:
         
         with patch.object(cli, '_get_matching_devices', return_value=matching):
             with patch('builtins.input', return_value='y'):
-                with patch('cli.Network.post', return_value=b"OK") as mock_post:
+                with patch('blucommand.cli.Network.post', return_value=b"OK") as mock_post:
                     cli.reboot(args)
                     assert mock_post.call_count == 1
     
@@ -206,4 +206,23 @@ class TestMultiDeviceSupport:
             with patch.object(cli.ctl, 'get_presets', return_value=presets_data):
                 # Should not raise exception
                 cli.presets(args)
+
+    def test_queue_move_passes_indexes_and_name(self, cli, mock_devices):
+        """``queue move 3 1 "Zone One"`` is from, to, then the player name."""
+        args = Namespace(action="move", parts=["3", "1", "Zone One"])
+        matching = [d for d in mock_devices if d.name == "Zone One"]
+
+        with patch.object(cli, "_get_matching_devices", return_value=matching) as match:
+            with patch.object(cli.ctl, "move_queue_item", return_value=True) as move:
+                cli.queue(args)
+
+        match.assert_called_once_with("Zone One")
+        move.assert_called_once()
+        assert move.call_args.args[1:] == (3, 1)
+
+    def test_queue_move_rejects_non_numeric_indexes(self, cli):
+        args = Namespace(action="move", parts=["a", "1"])
+        with patch.object(cli, "_get_matching_devices") as match:
+            cli.queue(args)
+        match.assert_not_called()
 

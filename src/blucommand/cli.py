@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import sys
-import subprocess
 import json
 import logging
 from datetime import datetime
@@ -25,13 +24,13 @@ from typing import List, Optional
 from dataclasses import asdict
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FutureTimeoutError
 
-from constants import BOLD, RED, GREEN, YELLOW, BLUE, CYAN, RESET, DIM, BLUOS_PORT, MAX_WORKERS_DISCOVERY, MAX_WORKERS_STATUS
-from models import PlayerStatus
-from controller import BluOSController
-from network import Network
-from utils import format_bytes, format_rate, format_uptime
-from validators import validate_volume, sanitize_ip, validate_ip
-from keychain import set_api_key, get_api_key, delete_api_key, has_api_key, is_macos
+from blucommand.constants import BOLD, RED, GREEN, YELLOW, BLUE, CYAN, RESET, DIM, BLUOS_PORT, MAX_WORKERS_DISCOVERY, MAX_WORKERS_STATUS
+from blucommand.models import PlayerStatus
+from blucommand.controller import BluOSController
+from blucommand.network import Network
+from blucommand.utils import format_bytes, format_rate, format_uptime
+from blucommand.validators import validate_volume, sanitize_ip
+from blucommand.keychain import set_api_key, get_api_key, delete_api_key, has_api_key, is_macos
 
 logger = logging.getLogger("blucommand")
 
@@ -133,7 +132,7 @@ class BluOSCLI:
         print(f"  {GREEN}sync{RESET}    {DIM}list{RESET}                       Show sync groups\n")
 
         print(f"{BOLD}System:{RESET}")
-        print(f"  {GREEN}reboot{RESET}   {DIM}[name] [--soft]{RESET}           Reboot devices")
+        print(f"  {GREEN}reboot{RESET}   {DIM}[name]{RESET}                     Restart the player")
         print(f"  {GREEN}keychain{RESET} {DIM}set|get|delete{RESET}            Manage UniFi API key in macOS Keychain\n")
 
         print(f"{BOLD}Config:{RESET}  {DIM}~/.config/blucommand/config.json{RESET}")
@@ -275,10 +274,10 @@ class BluOSCLI:
                 sys_line += f"  | Battery: 🔋 {d.battery}%"
             
             if is_follower:
-                print(self._format_status_row(status_txt, d.volume))
+                print(self._format_status_row(status_txt, d.volume, muted=d.muted))
             else:
                 third_col = f"Source: {d.service}" if d.service else ""
-                print(self._format_status_row(status_txt, d.volume, third_col))
+                print(self._format_status_row(status_txt, d.volume, third_col, muted=d.muted))
 
             sync_line = self._format_sync_line(d, devices)
             if sync_line:
@@ -308,9 +307,12 @@ class BluOSCLI:
         status_txt: str,
         volume: int,
         third_col: str = "",
+        muted: bool = False,
     ) -> str:
         """Format the status row with fixed spacing so Source aligns right."""
         row = f"    Status:{status_txt}  |  Vol: {volume}%"
+        if muted:
+            row += f" {YELLOW}MUTED{RESET}"
         if third_col:
             row += f"             |  {third_col}"
         return row
@@ -414,9 +416,9 @@ class BluOSCLI:
         devices = self._get_matching_devices(target)
         if not devices:
             if not self.ctl.ips:
-                print(f"{RED}No devices discovered. Try `bsc status --scan`.{RESET}\n")
+                print(f"{RED}No devices discovered. Try `blucommand status --scan`.{RESET}\n")
             else:
-                print(f"{YELLOW}No players responded. Try `bsc status --scan`.{RESET}\n")
+                print(f"{YELLOW}No players responded. Try `blucommand status --scan`.{RESET}\n")
             return
 
         for d in devices:
@@ -501,7 +503,7 @@ class BluOSCLI:
         print()
     
     def reboot(self, args) -> None:
-        """Reboot all or matching devices (hard reboot)."""
+        """Reboot all or matching devices."""
         target = getattr(args, 'target', None)
         targets = self._get_matching_devices(target)
         
@@ -529,35 +531,6 @@ class BluOSCLI:
                 print(f"{YELLOW}Sent (No Ack){RESET}")
         print()
     
-    def soft_reboot(self, args) -> None:
-        """Soft reboot all or matching devices."""
-        target = getattr(args, 'target', None)
-        targets = self._get_matching_devices(target)
-        
-        if not targets:
-            print(f"{RED}No matching devices found.{RESET}")
-            return
-        
-        scope = f"'{target}'" if target else "ALL"
-        print(f"\n{YELLOW}{BOLD}Soft Reboot {scope} BluOS devices?{RESET}")
-        if input("Confirm (y/N): ").lower() != 'y':
-            return
-        
-        print("-" * 40)
-        for d in targets:
-            sanitized_ip = sanitize_ip(d.ip)
-            if not sanitized_ip:
-                print(f"{RED}Invalid IP: {d.ip}{RESET}")
-                continue
-            print(f"Soft rebooting {d.name} ({sanitized_ip})... ", end='', flush=True)
-            res = self.ctl.soft_reboot(sanitized_ip)
-            
-            if res:
-                print(f"{GREEN}Sent{RESET}")
-            else:
-                print(f"{YELLOW}Sent (No Ack){RESET}")
-        print()
-    
     def diagnose(self, target: str) -> None:
         """Diagnose a specific device."""
         print(f"\n{BOLD}Diagnostics for {target}{RESET}")
@@ -571,45 +544,17 @@ class BluOSCLI:
             return
         
         tgt_ip = match.ip
-        arp_mac = "Unknown"
-        sanitized_ip = sanitize_ip(tgt_ip)
-        if sanitized_ip:
-            try:
-                # Security: Validate IP before subprocess call, use list args, explicit timeout
-                # IP is already sanitized by sanitize_ip(), but double-check
-                if not validate_ip(sanitized_ip):
-                    logger.warning(f"Invalid IP for ARP lookup: {sanitized_ip}")
-                else:
-                    out = subprocess.check_output(
-                        ["arp", "-n", sanitized_ip], 
-                        text=True, 
-                        stderr=subprocess.DEVNULL,
-                        timeout=2,
-                        # Security: Explicitly disable shell
-                        shell=False
-                    )
-                    # Validate output size
-                    if len(out) > 1000:  # Reasonable limit for ARP output
-                        logger.warning(f"ARP output too large: {len(out)} bytes")
-                    elif len(out.split()) >= 4:
-                        arp_mac = out.split()[3]
-            except subprocess.TimeoutExpired:
-                logger.debug(f"ARP lookup timeout for {sanitized_ip}")
-                pass
-            except subprocess.CalledProcessError as e:
-                logger.debug(f"ARP lookup failed for {sanitized_ip}: {e}")
-                pass
-            except FileNotFoundError:
-                logger.debug("arp command not found")
-                pass
-            except Exception as e:
-                logger.debug(f"Unexpected error in ARP lookup: {e}")
-                pass
-        
         sys_uptime = self.ctl.get_sys_uptime(tgt_ip)
-        
+        base = _player_api_base(match)
+        raw = Network.get(f"{base}/SyncStatus") if base else None
+        mac = "Unknown"
+        if raw:
+            root = self.ctl._safe_parse_xml(raw, match.endpoint)
+            if root is not None and root.attrib.get("mac"):
+                mac = root.attrib["mac"]
+
         print(f"IP Address: {CYAN}{match.endpoint}{RESET}")
-        print(f"ARP MAC:    {CYAN}{arp_mac}{RESET}")
+        print(f"MAC:        {CYAN}{mac}{RESET}")
         print(f"Sys Uptime: {GREEN}{sys_uptime}{RESET}")
         
         self.ctl.sync_unifi(force_refresh=True)
@@ -628,8 +573,6 @@ class BluOSCLI:
             print(f"UniFi DB:   {DIM}Not Found{RESET}")
         
         print(f"\n{BOLD}Endpoint: /SyncStatus{RESET}")
-        base = _player_api_base(match)
-        raw = Network.get(f"{base}/SyncStatus") if base else None
         if raw:
             print(raw.decode('utf-8', errors='ignore'))
         else:
@@ -706,11 +649,48 @@ class BluOSCLI:
             args.target, "Toggling Playback", _toggle, "OK",
         )
     
+    def _queue_action_and_tokens(self, args):
+        """
+        Return ``(action, tokens)`` for the queue command.
+
+        ``queue Living Room`` shows that player. ``queue move 3 1`` and
+        ``queue move 3 1 "Zone One"`` use from, to, then an optional name.
+        """
+        action = getattr(args, "action", None) or "show"
+        parts = getattr(args, "parts", None)
+        if parts is not None:
+            tokens = [str(part) for part in parts]
+        elif action == "move":
+            tokens = [str(args.from_index), str(args.to_index)]
+            if getattr(args, "target", None):
+                tokens.append(str(args.target))
+        else:
+            tokens = [str(args.target)] if getattr(args, "target", None) else []
+        if action not in {"show", "clear", "move"}:
+            tokens.insert(0, action)
+            action = "show"
+        return action, tokens
+
     def queue(self, args) -> None:
         """Manage playback queue on all or matching devices."""
-        target = args.target
-        action = args.action
-        
+        action, tokens = self._queue_action_and_tokens(args)
+        target = None
+        from_idx = None
+        to_idx = None
+        if action == "move":
+            if len(tokens) < 2:
+                print(f"{RED}Usage: queue move <from> <to> [name]{RESET}")
+                return
+            try:
+                from_idx = int(tokens[0])
+                to_idx = int(tokens[1])
+            except ValueError:
+                print(f"{RED}Invalid queue indices.{RESET}")
+                return
+            target = tokens[2] if len(tokens) > 2 else None
+        elif tokens:
+            target = tokens[0]
+
         targets = self._get_matching_devices(target)
         
         if not targets:
@@ -746,22 +726,17 @@ class BluOSCLI:
             print()
         
         elif action == 'move':
-            if not args.from_index or not args.to_index:
-                print(f"{RED}Usage: queue move <from> <to> [target]{RESET}")
+            if from_idx is None or to_idx is None:
+                print(f"{RED}Usage: queue move <from> <to> [name]{RESET}")
                 return
-            try:
-                from_idx = int(args.from_index)
-                to_idx = int(args.to_index)
-                scope = f"'{target}'" if target else "all devices"
-                print(f"\n{BOLD}Moving Queue Item on {scope}...{RESET}")
-                print("-" * 40)
-                for tgt_device in targets:
-                    res = self.ctl.move_queue_item(tgt_device.endpoint, from_idx, to_idx)
-                    state = f"{GREEN}MOVED{RESET}" if res else f"{RED}ERROR{RESET}"
-                    print(f"[{state}] Moved item {from_idx} to {to_idx} for {tgt_device.name}")
-                print()
-            except ValueError:
-                print(f"{RED}Invalid queue indices.{RESET}")
+            scope = f"'{target}'" if target else "all devices"
+            print(f"\n{BOLD}Moving Queue Item on {scope}...{RESET}")
+            print("-" * 40)
+            for tgt_device in targets:
+                res = self.ctl.move_queue_item(tgt_device.endpoint, from_idx, to_idx)
+                state = f"{GREEN}MOVED{RESET}" if res else f"{RED}ERROR{RESET}"
+                print(f"[{state}] Moved item {from_idx} to {to_idx} for {tgt_device.name}")
+            print()
     
     def inputs(self, args) -> None:
         """Manage audio inputs on all or matching devices."""
@@ -804,6 +779,10 @@ class BluOSCLI:
         """Manage Bluetooth mode on all or matching devices."""
         target = args.target
         mode = args.mode
+        modes = {'manual': 0, 'auto': 1, 'automatic': 1, 'guest': 2, 'disable': 3, 'disabled': 3}
+        if target and target.lower() in modes and not mode:
+            mode = target
+            target = None
         
         targets = self._get_matching_devices(target)
         
@@ -812,9 +791,7 @@ class BluOSCLI:
             return
         
         if mode:
-            # Set mode on all matching devices
-            mode_map = {'manual': 0, 'auto': 1, 'automatic': 1, 'guest': 2, 'disable': 3, 'disabled': 3}
-            mode_val = mode_map.get(mode.lower())
+            mode_val = modes.get(mode.lower())
             if mode_val is None:
                 print(f"{RED}Invalid mode. Use: manual, auto, guest, or disable{RESET}")
                 return
@@ -841,6 +818,9 @@ class BluOSCLI:
         """Manage presets on all or matching devices."""
         target = args.target
         preset_id = args.preset_id
+        if preset_id is None and target is not None and str(target).isdigit():
+            preset_id = int(target)
+            target = None
         
         targets = self._get_matching_devices(target)
         

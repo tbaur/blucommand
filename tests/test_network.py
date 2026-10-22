@@ -5,7 +5,7 @@ import pytest
 from unittest.mock import patch, MagicMock, Mock
 from urllib.error import URLError, HTTPError
 
-from network import Network, _url_for_log
+from blucommand.network import Network, _url_for_log
 
 
 class TestNetwork:
@@ -35,7 +35,7 @@ class TestNetwork:
         assert result == b"post response"
         mock_urlopen.assert_called_once()
     
-    @patch('network.time.sleep')
+    @patch('blucommand.network.time.sleep')
     @patch('urllib.request.urlopen')
     def test_handles_timeout(self, mock_urlopen, _mock_sleep):
         """Test handling of timeout."""
@@ -45,7 +45,7 @@ class TestNetwork:
         
         assert result is None
     
-    @patch('network.time.sleep')
+    @patch('blucommand.network.time.sleep')
     @patch('urllib.request.urlopen')
     def test_handles_connection_error(self, mock_urlopen, _mock_sleep):
         """Test handling of connection error."""
@@ -55,7 +55,7 @@ class TestNetwork:
         
         assert result is None
     
-    @patch('network.time.sleep')
+    @patch('blucommand.network.time.sleep')
     @patch('urllib.request.urlopen')
     def test_handles_http_error(self, mock_urlopen, _mock_sleep):
         """HTTP errors must not be retried (HTTPError subclasses URLError)."""
@@ -67,7 +67,7 @@ class TestNetwork:
         assert mock_urlopen.call_count == 1
         _mock_sleep.assert_not_called()
     
-    @patch('network.time.sleep')
+    @patch('blucommand.network.time.sleep')
     @patch('urllib.request.urlopen')
     def test_handles_url_error(self, mock_urlopen, _mock_sleep):
         """Test handling of URL error."""
@@ -77,7 +77,7 @@ class TestNetwork:
         
         assert result is None
 
-    @patch('network.time.sleep')
+    @patch('blucommand.network.time.sleep')
     @patch('urllib.request.urlopen')
     def test_max_retries_one_fails_fast(self, mock_urlopen, _mock_sleep):
         """Device polls can disable retries so dead endpoints fail fast."""
@@ -88,6 +88,17 @@ class TestNetwork:
         assert result is None
         assert mock_urlopen.call_count == 1
         _mock_sleep.assert_not_called()
+
+    def test_http_error_with_unreadable_body(self):
+        """A body that cannot be read is still a failed request."""
+        error = HTTPError("http://192.0.2.1/test", 500, "err", {}, None)
+        error.read = Mock(side_effect=OSError("closed"))
+        with patch("urllib.request.urlopen", side_effect=error):
+            assert Network.get("http://192.0.2.1/test") is None
+
+    def test_unexpected_error_returns_none(self):
+        with patch("blucommand.network.Network._do_request", side_effect=RuntimeError("boom")):
+            assert Network.get("http://192.0.2.1/test") is None
     
     def test_rejects_invalid_url_scheme(self):
         """Test that invalid URL schemes are rejected."""
@@ -100,7 +111,7 @@ class TestNetwork:
     @patch('urllib.request.urlopen')
     def test_enforces_size_limit(self, mock_urlopen):
         """Test that size limit is enforced."""
-        from constants import MAX_XML_SIZE
+        from blucommand.constants import MAX_XML_SIZE
         mock_response = MagicMock()
         mock_response.read.return_value = b"x" * (MAX_XML_SIZE + 1)
         mock_urlopen.return_value.__enter__.return_value = mock_response
@@ -134,7 +145,7 @@ class TestNetwork:
         assert "token" not in redacted
         assert "host.example:8443" in redacted
 
-    @patch('network.logger')
+    @patch('blucommand.network.logger')
     def test_invalid_scheme_log_does_not_echo_credentials(self, mock_logger):
         """Invalid-scheme rejection logs a redacted URL only."""
         Network.get("ftp://user:password@evil.example/secret")

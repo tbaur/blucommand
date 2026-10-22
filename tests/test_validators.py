@@ -2,7 +2,7 @@
 Tests for validators module.
 """
 import pytest
-from validators import (
+from blucommand.validators import (
     validate_ip, validate_hostname, sanitize_ip,
     validate_volume, validate_timeout, validate_config_value,
     parse_endpoint, format_endpoint, sanitize_endpoint,
@@ -144,6 +144,17 @@ class TestEndpointHelpers:
         assert sanitize_endpoint("192.168.1.1") == "192.168.1.1:11000"
         assert sanitize_endpoint("192.168.1.1:11010") == "192.168.1.1:11010"
         assert sanitize_endpoint("invalid") is None
+
+    def test_parse_endpoint_rejects_blank_and_bad_port(self):
+        assert parse_endpoint("") == (None, 11000)
+        assert parse_endpoint("   ") == (None, 11000)
+        ip, port = parse_endpoint("192.0.2.10:nope")
+        assert ip is None
+        assert port == 11000
+        assert format_endpoint("192.0.2.10") == "192.0.2.10:11000"
+
+    def test_unknown_discovery_method_falls_back(self):
+        assert validate_config_value("DISCOVERY_METHOD", "nope") == "mdns"
 
 
 class TestValidateVolume:

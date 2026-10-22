@@ -5,13 +5,13 @@ from unittest.mock import patch
 
 import pytest
 
-from controller import (
+from blucommand.controller import (
     BluOSController,
     parse_bluos_host,
     parse_bluos_endpoint,
     parse_sync_status_root,
 )
-from models import PlayerStatus
+from blucommand.models import PlayerStatus
 
 
 class TestParseBluosHost:
@@ -89,7 +89,7 @@ class TestCollectSyncBreakOperations:
 
     @pytest.fixture
     def controller(self):
-        with patch("controller.Config"):
+        with patch("blucommand.controller.Config"):
             return BluOSController()
 
     def test_break_all_from_primary(self, controller):
@@ -164,7 +164,7 @@ class TestCollectSyncBreakOperations:
             ),
         ]
 
-    @patch("controller.Network.get")
+    @patch("blucommand.controller.Network.get")
     def test_get_device_info_reads_master_child(self, mock_network, controller):
         sync_xml = (
             b'<SyncStatus name="Player A">'
@@ -181,7 +181,7 @@ class TestCollectSyncBreakOperations:
         assert status.port == 11000
         assert status.endpoint == "192.168.1.20:11000"
 
-    @patch("controller.Network.get")
+    @patch("blucommand.controller.Network.get")
     def test_get_device_info_ci_secondary_port(self, mock_network, controller):
         sync_xml = (
             b'<SyncStatus name="Player A" modelName="CI S2" brand="NAD" '

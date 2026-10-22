@@ -10,7 +10,7 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "constants.py"
+          "path": "src/blucommand/constants.py"
         }
       ]
     }

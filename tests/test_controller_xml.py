@@ -4,9 +4,9 @@ Tests for XML parsing and device info in controller.
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from controller import BluOSController
-from models import PlayerStatus
-from constants import MAX_XML_SIZE, MAX_XML_DEPTH, MAX_XML_ELEMENTS, MAX_XML_ATTRIBUTES
+from blucommand.controller import BluOSController
+from blucommand.models import PlayerStatus
+from blucommand.constants import MAX_XML_SIZE, MAX_XML_DEPTH, MAX_XML_ELEMENTS, MAX_XML_ATTRIBUTES
 
 
 class TestXMLParsing:
@@ -15,7 +15,7 @@ class TestXMLParsing:
     @pytest.fixture
     def controller(self):
         """Create controller instance."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             return ctl
     
@@ -97,11 +97,11 @@ class TestDeviceInfo:
     @pytest.fixture
     def controller(self):
         """Create controller instance."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             return ctl
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_get_device_info_full(self, mock_network, controller):
         """Test getting full device info."""
         sync_xml = b'<sync name="Speaker" modelName="Node" brand="BluOS" version="1.0" db="192.168.1.100" master=""/>'
@@ -116,8 +116,21 @@ class TestDeviceInfo:
         assert status.volume == 50
         assert status.state == "play"
         assert status.track == "Song"
+        assert status.status == "online"
+        assert status.muted is False
+
+    @patch("blucommand.controller.Network.get")
+    def test_get_device_info_mute_volume_without_mute_flag(self, mock_network, controller):
+        """Muted players omit mute and report volume 0 plus muteVolume."""
+        sync_xml = b'<SyncStatus name="Speaker" volume="0" muteVolume="14"/>'
+        status_xml = b"<status><state>pause</state></status>"
+        mock_network.side_effect = [sync_xml, status_xml]
+        status = controller.get_device_info("192.168.1.100")
+        assert status.volume == 0
+        assert status.muted is True
+        assert status.service == ""
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_get_device_info_no_sync(self, mock_network, controller):
         """Test getting device info without sync XML."""
         status_xml = b'<status><volume>50</volume></status>'
@@ -129,7 +142,7 @@ class TestDeviceInfo:
         assert status.name == "Unknown"
         assert status.volume == 50
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_get_device_info_xml_error(self, mock_network, controller):
         """Test device info with XML parse error."""
         mock_network.return_value = b'<invalid>'
@@ -137,7 +150,7 @@ class TestDeviceInfo:
         status = controller.get_device_info("192.168.1.100")
         assert status.status in ["xml_error", "parse_error", "error"]
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_get_device_info_with_battery(self, mock_network, controller):
         """Test device info with battery information."""
         sync_xml = b'<sync name="Portable"><battery level="75"/></sync>'
@@ -148,7 +161,7 @@ class TestDeviceInfo:
         status = controller.get_device_info("192.168.1.100")
         assert status.battery == "75"
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_get_device_info_with_master(self, mock_network, controller):
         """Test device info with sync master child element."""
         sync_xml = b'<SyncStatus name="Slave"><master>192.168.1.100</master></SyncStatus>'
@@ -159,7 +172,7 @@ class TestDeviceInfo:
         status = controller.get_device_info("192.168.1.101")
         assert status.master == "192.168.1.100:11000"
 
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_synced_slave_prefers_syncstatus_volume(self, mock_network, controller):
         """Synced /Status volume is group level — prefer SyncStatus attribute."""
         sync_xml = (
@@ -178,7 +191,7 @@ class TestDeviceInfo:
         assert status.state == "stream"
         assert status.track == "Track"
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_get_device_info_roon_service(self, mock_network, controller):
         """Test device info with Roon service."""
         sync_xml = b'<sync name="Speaker"/>'
