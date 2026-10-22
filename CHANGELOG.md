@@ -9,6 +9,17 @@ From 1.1.1 onward this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) based on
 [Conventional Commits](https://www.conventionalcommits.org). See [RELEASING.md](RELEASING.md).
 
+## [2.0.0](https://github.com/tbaur/blucommand/compare/v1.4.3...v2.0.0) (2026-10-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* rename the project to blucommand ([#68](https://github.com/tbaur/blucommand/issues/68))
+
+### Features
+
+* rename the project to blucommand ([#68](https://github.com/tbaur/blucommand/issues/68)) ([271bdcf](https://github.com/tbaur/blucommand/commit/271bdcf0d89c868385545edaff3df744379c579a))
+
 ## [1.4.3](https://github.com/tbaur/bluos-controller/compare/v1.4.2...v1.4.3) (2026-10-02)
 
 

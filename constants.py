@@ -18,7 +18,7 @@ limitations under the License.
 """
 import os
 
-__version__ = "1.4.3"  # x-release-please-version
+__version__ = "2.0.0"  # x-release-please-version
 
 # --- PATHS ---
 BASE_DIR = os.path.expanduser("~/.config/blucommand")
