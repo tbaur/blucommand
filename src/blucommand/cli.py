@@ -726,6 +726,9 @@ class BluOSCLI:
             print()
         
         elif action == 'move':
+            if from_idx is None or to_idx is None:
+                print(f"{RED}Usage: queue move <from> <to> [name]{RESET}")
+                return
             scope = f"'{target}'" if target else "all devices"
             print(f"\n{BOLD}Moving Queue Item on {scope}...{RESET}")
             print("-" * 40)

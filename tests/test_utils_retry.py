@@ -270,3 +270,15 @@ class TestStructuredFormatter:
         assert data['device_ip'] == "192.168.1.100"
         assert data['operation'] == "play"
 
+
+class TestRetryEdge:
+    """Zero attempts has nothing to retry."""
+
+    def test_zero_retries_raises(self):
+        @retry_with_backoff(max_retries=0)
+        def unused():
+            return "unused"
+
+        with pytest.raises(Exception, match="Retry failed"):
+            unused()
+

@@ -42,6 +42,9 @@ class TestFormatBytes:
         result = format_bytes(999999999999)
         assert "GB" in result
 
+    def test_format_bytes_petabytes(self):
+        assert format_bytes(1024 ** 5) == "1.00 PB"
+
 
 class TestFormatRate:
     """Rate formatting tests."""
@@ -153,6 +156,13 @@ class TestAtomicWrite:
         atomic_write("/tmp/test.json", {"test": "value"})
         mock_remove.assert_called()
 
+    @patch('os.remove', side_effect=OSError("busy"))
+    @patch('os.path.exists', return_value=True)
+    @patch('os.replace', side_effect=OSError("replace failed"))
+    @patch('builtins.open')
+    def test_atomic_write_ignores_cleanup_failure(self, _mock_open, _mock_replace, _mock_exists, _mock_remove):
+        atomic_write("/tmp/test.json", {"test": "value"})
+
 
 class TestSetupLogging:
     """Test logging setup."""
@@ -171,4 +181,8 @@ class TestSetupLogging:
         """Test logging setup creates handlers."""
         logger = setup_logging(debug=False)
         assert len(logger.handlers) >= 1
+
+    def test_setup_logging_structured(self):
+        logger = setup_logging(structured=True)
+        assert logger.handlers
 

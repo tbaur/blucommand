@@ -1,6 +1,7 @@
 """
 Tests for main.py entry point.
 """
+import runpy
 import pytest
 import sys
 from unittest.mock import Mock, patch, MagicMock
@@ -10,6 +11,12 @@ import blucommand.main as main
 
 class TestMain:
     """Test main entry point."""
+
+    def test_module_entrypoint_calls_main(self):
+        """``python -m blucommand`` calls main."""
+        with patch("blucommand.main.main") as mock_main:
+            runpy.run_module("blucommand", run_name="__main__")
+        mock_main.assert_called_once_with()
     
     def test_main_help(self):
         """Test main with help flag."""

@@ -88,6 +88,17 @@ class TestNetwork:
         assert result is None
         assert mock_urlopen.call_count == 1
         _mock_sleep.assert_not_called()
+
+    def test_http_error_with_unreadable_body(self):
+        """A body that cannot be read is still a failed request."""
+        error = HTTPError("http://192.0.2.1/test", 500, "err", {}, None)
+        error.read = Mock(side_effect=OSError("closed"))
+        with patch("urllib.request.urlopen", side_effect=error):
+            assert Network.get("http://192.0.2.1/test") is None
+
+    def test_unexpected_error_returns_none(self):
+        with patch("blucommand.network.Network._do_request", side_effect=RuntimeError("boom")):
+            assert Network.get("http://192.0.2.1/test") is None
     
     def test_rejects_invalid_url_scheme(self):
         """Test that invalid URL schemes are rejected."""

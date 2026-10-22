@@ -207,3 +207,22 @@ class TestMultiDeviceSupport:
                 # Should not raise exception
                 cli.presets(args)
 
+    def test_queue_move_passes_indexes_and_name(self, cli, mock_devices):
+        """``queue move 3 1 "Zone One"`` is from, to, then the player name."""
+        args = Namespace(action="move", parts=["3", "1", "Zone One"])
+        matching = [d for d in mock_devices if d.name == "Zone One"]
+
+        with patch.object(cli, "_get_matching_devices", return_value=matching) as match:
+            with patch.object(cli.ctl, "move_queue_item", return_value=True) as move:
+                cli.queue(args)
+
+        match.assert_called_once_with("Zone One")
+        move.assert_called_once()
+        assert move.call_args.args[1:] == (3, 1)
+
+    def test_queue_move_rejects_non_numeric_indexes(self, cli):
+        args = Namespace(action="move", parts=["a", "1"])
+        with patch.object(cli, "_get_matching_devices") as match:
+            cli.queue(args)
+        match.assert_not_called()
+

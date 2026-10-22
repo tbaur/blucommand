@@ -170,3 +170,33 @@ class TestConfig:
             config = Config()
             assert config.get_unifi_api_key() is None
 
+    def test_drops_invalid_values(self, temp_config_dir):
+        json_file = os.path.join(temp_config_dir, "config.json")
+        ini_file = os.path.join(temp_config_dir, "config.ini")
+        with open(json_file, "w") as handle:
+            json.dump({"DISCOVERY_TIMEOUT": "nope"}, handle)
+        with patch("blucommand.config.CONFIG_FILE_JSON", json_file), \
+             patch("blucommand.config.CONFIG_FILE", ini_file):
+            config = Config()
+        assert "DISCOVERY_TIMEOUT" not in config.data
+
+    def test_create_failure_leaves_config_empty(self, temp_config_dir):
+        missing_json = os.path.join(temp_config_dir, "absent.json")
+        missing_ini = os.path.join(temp_config_dir, "absent.ini")
+        with patch("blucommand.config.CONFIG_FILE_JSON", missing_json), \
+             patch("blucommand.config.CONFIG_FILE", missing_ini), \
+             patch("builtins.open", side_effect=OSError("denied")):
+            config = Config()
+        assert config.data == {}
+
+    def test_ini_read_failure_leaves_config_empty(self, temp_config_dir):
+        missing_json = os.path.join(temp_config_dir, "absent.json")
+        ini_file = os.path.join(temp_config_dir, "config.ini")
+        with open(ini_file, "w") as handle:
+            handle.write("BLUOS_SERVICE=player\n")
+        with patch("blucommand.config.CONFIG_FILE_JSON", missing_json), \
+             patch("blucommand.config.CONFIG_FILE", ini_file), \
+             patch("builtins.open", side_effect=OSError("denied")):
+            config = Config()
+        assert config.data == {}
+
