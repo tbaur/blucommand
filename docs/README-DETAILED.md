@@ -1,4 +1,4 @@
-# BluOS Controller - Detailed Documentation
+# Blucommand - Detailed Documentation
 
 > **Note**: This is the detailed documentation. For a quick start guide, see the [main README.md](../README.md).
 
@@ -240,21 +240,21 @@ Run the installation script from the repository:
 ```
 
 The script will:
-- Copy files to `~/.config/bluos-controller`
+- Copy files to `~/.config/blucommand`
 - Prompt for configuration settings (UniFi integration, etc.)
 - Create `config.json` with your settings
-- Create a symlink `~/local/bin/bluos-controller` (add to PATH if needed)
+- Create a symlink `~/local/bin/blucommand` (add to PATH if needed)
 
 ### Manual Installation
 
-1. Clone or copy this repository to `~/.config/bluos-controller`
+1. Clone or copy this repository to `~/.config/blucommand`
 2. Ensure Python 3.10+ is installed
 3. Make `main.py` executable: `chmod +x main.py`
 4. Create `config.json` (see Configuration section)
 
 ## Configuration
 
-Configuration is stored in `~/.config/bluos-controller/config.json` (JSON format is preferred, but INI format is also supported for backward compatibility).
+Configuration is stored in `~/.config/blucommand/config.json` (JSON format is preferred, but INI format is also supported for backward compatibility).
 
 ### Basic Configuration
 
@@ -297,13 +297,13 @@ To enable UniFi integration for network statistics, set:
 
 ```bash
 # Store API key in Keychain
-bluos-controller keychain set
+blucommand keychain set
 
 # Check if API key is stored
-bluos-controller keychain get
+blucommand keychain get
 
 # Remove API key from Keychain
-bluos-controller keychain delete
+blucommand keychain delete
 ```
 
 **How it works:**
@@ -322,7 +322,7 @@ bluos-controller keychain delete
 
 ## Usage
 
-After installation, use the `bluos-controller` command:
+After installation, use the `blucommand` command:
 
 **Note**: Most commands support controlling all devices (default) or specific devices by name. Device names can be:
 - Exact match: `"Zone One"`
@@ -332,47 +332,47 @@ After installation, use the `bluos-controller` command:
 ### Discover Devices
 
 ```bash
-bluos-controller discover
+blucommand discover
 ```
 
 ### Status Report
 
 ```bash
 # All devices
-bluos-controller status
+blucommand status
 
 # Filter by name
-bluos-controller status "Zone One"
+blucommand status "Zone One"
 
 # Force fresh scan
-bluos-controller status --scan
+blucommand status --scan
 
 # JSON output
-bluos-controller status --json
+blucommand status --json
 ```
 
 ### Volume Control
 
 ```bash
 # List current volumes
-bluos-controller volume
+blucommand volume
 
 # Set absolute volume
-bluos-controller volume 20
+blucommand volume 20
 
 # Adjust volume
-bluos-controller volume +5
-bluos-controller volume -10
+blucommand volume +5
+blucommand volume -10
 
 # Mute/Unmute
-bluos-controller volume mute
-bluos-controller volume unmute
+blucommand volume mute
+blucommand volume unmute
 
 # Reset to safe volume
-bluos-controller volume reset
+blucommand volume reset
 
 # Target specific device
-bluos-controller volume 25 "Zone One"
+blucommand volume 25 "Zone One"
 ```
 
 ### Playback Control
@@ -381,19 +381,19 @@ All playback commands support controlling all devices (default) or specific devi
 
 ```bash
 # All devices (default)
-bluos-controller play
-bluos-controller pause
-bluos-controller stop
-bluos-controller skip
-bluos-controller previous
-bluos-controller toggle
+blucommand play
+blucommand pause
+blucommand stop
+blucommand skip
+blucommand previous
+blucommand toggle
 
 # Specific device
-bluos-controller play "Zone One"
-bluos-controller pause "Player A"
+blucommand play "Zone One"
+blucommand pause "Player A"
 
 # Pattern matching (multiple devices)
-bluos-controller play "Zone"  # Matches "Zone One", "Zone Two", etc.
+blucommand play "Zone"  # Matches "Zone One", "Zone Two", etc.
 ```
 
 ### Queue Management
@@ -402,20 +402,20 @@ Queue commands support all devices or specific devices:
 
 ```bash
 # Show queue for all devices
-bluos-controller queue
+blucommand queue
 
 # Show queue for specific device
-bluos-controller queue "Zone One"
+blucommand queue "Zone One"
 
 # Clear queue on all devices
-bluos-controller queue clear
+blucommand queue clear
 
 # Clear queue on specific device
-bluos-controller queue clear "Player A"
+blucommand queue clear "Player A"
 
 # Move track in queue (all or specific)
-bluos-controller queue move 3 1          # All devices
-bluos-controller queue move 3 1 "Zone One"  # Specific device
+blucommand queue move 3 1          # All devices
+blucommand queue move 3 1 "Zone One"  # Specific device
 ```
 
 ### Input Source Selection
@@ -424,17 +424,17 @@ Input commands support all devices or specific devices:
 
 ```bash
 # List inputs for all devices
-bluos-controller inputs
+blucommand inputs
 
 # List inputs for specific device
-bluos-controller inputs "Zone One"
+blucommand inputs "Zone One"
 
 # Set input on all devices
-bluos-controller inputs "" "Bluetooth"
+blucommand inputs "" "Bluetooth"
 
 # Set input on specific device
-bluos-controller inputs "Zone One" "Bluetooth"
-bluos-controller inputs "Player A" "Optical 1"
+blucommand inputs "Zone One" "Bluetooth"
+blucommand inputs "Player A" "Optical 1"
 ```
 
 ### Bluetooth Mode Control
@@ -443,19 +443,19 @@ Bluetooth commands support all devices or specific devices:
 
 ```bash
 # Show Bluetooth mode for all devices
-bluos-controller bluetooth
+blucommand bluetooth
 
 # Show mode for specific device
-bluos-controller bluetooth "Zone One"
+blucommand bluetooth "Zone One"
 
 # Set mode on all devices
-bluos-controller bluetooth "" auto
+blucommand bluetooth "" auto
 
 # Set mode on specific device
-bluos-controller bluetooth "Zone One" manual
-bluos-controller bluetooth "Player A" auto
-bluos-controller bluetooth "Zone Two" guest
-bluos-controller bluetooth "Player C" disable
+blucommand bluetooth "Zone One" manual
+blucommand bluetooth "Player A" auto
+blucommand bluetooth "Zone Two" guest
+blucommand bluetooth "Player C" disable
 ```
 
 ### Preset Management
@@ -464,16 +464,16 @@ Preset commands support all devices or specific devices:
 
 ```bash
 # List presets for all devices
-bluos-controller presets
+blucommand presets
 
 # List presets for specific device
-bluos-controller presets "Zone One"
+blucommand presets "Zone One"
 
 # Play preset on all devices
-bluos-controller presets "" 1
+blucommand presets "" 1
 
 # Play preset on specific device
-bluos-controller presets "Zone One" 1
+blucommand presets "Zone One" 1
 ```
 
 ### Sync Group Management
@@ -482,19 +482,19 @@ Runtime BluOS groups use the **primary** player to attach or detach slaves.
 
 ```bash
 # Create sync group (Zone One primary, Player A + Zone Two slaves)
-bluos-controller sync create "Zone One" "Player A,Zone Two"
+blucommand sync create "Zone One" "Player A,Zone Two"
 
 # Break all runtime groups
-bluos-controller sync break
+blucommand sync break
 
 # Refresh discovery, then list groups
-bluos-controller sync list --scan
+blucommand sync list --scan
 
 # Break groups involving a specific player (primary or slave)
-bluos-controller sync break "Player A"
+blucommand sync break "Player A"
 
 # List sync groups and standalone players
-bluos-controller sync list
+blucommand sync list
 ```
 
 `sync list` reads `/SyncStatus` from each player and shows:
@@ -508,7 +508,7 @@ Ungrouping always sends `RemoveSlave` to the **primary**, matching BluOS runtime
 ### Device Diagnostics
 
 ```bash
-bluos-controller diagnose "Device Name"
+blucommand diagnose "Device Name"
 ```
 
 ### Keychain Management (macOS)
@@ -517,13 +517,13 @@ Manage UniFi API key storage in macOS Keychain:
 
 ```bash
 # Store API key in Keychain (prompts for password)
-bluos-controller keychain set
+blucommand keychain set
 
 # Check API key status
-bluos-controller keychain get
+blucommand keychain get
 
 # Remove API key from Keychain
-bluos-controller keychain delete
+blucommand keychain delete
 ```
 
 **Note**: Keychain operations are macOS-only and don't require network discovery, making them fast and efficient.
@@ -534,16 +534,16 @@ Reboot commands support all devices or specific devices:
 
 ```bash
 # Hard reboot all devices
-bluos-controller reboot
+blucommand reboot
 
 # Hard reboot specific device
-bluos-controller reboot "Zone One"
+blucommand reboot "Zone One"
 
 # Soft reboot all devices
-bluos-controller reboot --soft
+blucommand reboot --soft
 
 # Soft reboot specific device
-bluos-controller reboot --soft "Player A"
+blucommand reboot --soft "Player A"
 ```
 
 ## Debug Mode & Logging
@@ -553,19 +553,19 @@ bluos-controller reboot --soft "Player A"
 Enable debug logging by setting the environment variable:
 
 ```bash
-export BLUOS_DEBUG=1
-bluos-controller status
+export BLUCOMMAND_DEBUG=1
+blucommand status
 ```
 
-Debug logs are written to `~/.config/bluos-controller/bluos-controller.log`
+Debug logs are written to `~/.config/blucommand/blucommand.log`
 
 ### Structured Logging (JSON Format)
 
 Enable JSON-formatted structured logging for better log parsing and analysis:
 
 ```bash
-export BLUOS_STRUCTURED_LOG=1
-bluos-controller status
+export BLUCOMMAND_STRUCTURED_LOG=1
+blucommand status
 ```
 
 Structured logs include:
@@ -588,7 +588,7 @@ This format is ideal for log aggregation systems, monitoring tools, and automate
 ## Project Structure
 
 ```
-bluos-controller/
+blucommand/
 ├── main.py              # Entry point
 ├── constants.py         # Constants and configuration
 ├── models.py            # Data models
@@ -629,7 +629,7 @@ bluos-controller/
 
 **Easy Method (Recommended):**
 ```bash
-bluos-controller --run-code-tests
+blucommand --run-code-tests
 ```
 This command will:
 - Run all tests with coverage
@@ -760,8 +760,8 @@ The codebase is organized into modular components:
 
 ## Environment Variables
 
-- `BLUOS_DEBUG=1`: Enable debug logging
-- `BLUOS_STRUCTURED_LOG=1`: Enable JSON structured logging format
+- `BLUCOMMAND_DEBUG=1`: Enable debug logging
+- `BLUCOMMAND_STRUCTURED_LOG=1`: Enable JSON structured logging format
 
 ## Troubleshooting
 
@@ -770,12 +770,12 @@ The codebase is organized into modular components:
 1. **Check Network Connectivity**: Ensure devices are on the same network
 2. **Try Different Discovery Method**: 
    ```bash
-   # Edit ~/.config/bluos-controller/config.json
+   # Edit ~/.config/blucommand/config.json
    # Change "DISCOVERY_METHOD" to "lsdp" or "both"
    ```
 3. **Force Fresh Discovery**: Use `--scan` flag
    ```bash
-   bluos-controller status --scan
+   blucommand status --scan
    ```
 4. **Check Firewall**: Ensure UDP port 11430 (LSDP) and mDNS are not blocked
 
@@ -799,9 +799,9 @@ The codebase is organized into modular components:
 
 ### Logging
 
-- **Debug Mode**: Set `BLUOS_DEBUG=1` for detailed logging
-- **Structured Logs**: Set `BLUOS_STRUCTURED_LOG=1` for JSON-formatted logs
-- **Log Location**: `~/.config/bluos-controller/bluos-controller.log`
+- **Debug Mode**: Set `BLUCOMMAND_DEBUG=1` for detailed logging
+- **Structured Logs**: Set `BLUCOMMAND_STRUCTURED_LOG=1` for JSON-formatted logs
+- **Log Location**: `~/.config/blucommand/blucommand.log`
 
 ## Version
 

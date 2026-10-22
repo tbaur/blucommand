@@ -1,6 +1,6 @@
-# BluOS Controller
+# Blucommand
 
-[![Tests](https://github.com/tbaur/bluos-controller/actions/workflows/test.yml/badge.svg)](https://github.com/tbaur/bluos-controller/actions/workflows/test.yml)
+[![Tests](https://github.com/tbaur/blucommand/actions/workflows/test.yml/badge.svg)](https://github.com/tbaur/blucommand/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![macOS](https://img.shields.io/badge/macOS-10.15%2B-lightgrey.svg)](https://www.apple.com/macos/)
@@ -14,15 +14,15 @@ Command-line controller for BluOS devices on macOS. Pure Python standard library
 ./install.sh
 ```
 
-This installs to `~/.config/bluos-controller` and creates a symlink at `~/local/bin/bluos-controller`.
+This installs to `~/.config/blucommand` and creates a symlink at `~/local/bin/blucommand`.
 
 ```bash
-bluos-controller discover          # Find devices (mDNS + CI zones)
-bluos-controller status            # Show all device status
-bluos-controller status --scan     # Force rediscovery, then status
-bluos-controller volume 25         # Set volume
-bluos-controller play "Player A"    # Play on specific device
-bluos-controller --help            # Full command reference
+blucommand discover          # Find devices (mDNS + CI zones)
+blucommand status            # Show all device status
+blucommand status --scan     # Force rediscovery, then status
+blucommand volume 25         # Set volume
+blucommand play "Player A"    # Play on specific device
+blucommand --help            # Full command reference
 ```
 
 ## Features
@@ -45,7 +45,7 @@ NAD multi-zone players (e.g. NAD CI S2 or CI 580 V2) advertise secondary zones o
 
 ## Configuration
 
-Stored in `~/.config/bluos-controller/config.json`:
+Stored in `~/.config/blucommand/config.json`:
 
 ```json
 {
@@ -69,9 +69,9 @@ mDNS always browses `_musc._tcp` (primary players) and `_musp._tcp` (CI secondar
 Store your API key in macOS Keychain instead of plaintext config:
 
 ```bash
-bluos-controller keychain set      # Store key
-bluos-controller keychain get      # Check status
-bluos-controller keychain delete   # Remove key
+blucommand keychain set      # Store key
+blucommand keychain get      # Check status
+blucommand keychain delete   # Remove key
 ```
 
 Keychain values take precedence over `config.json`.
@@ -84,8 +84,8 @@ Keychain values take precedence over `config.json`.
 ## Uninstall
 
 ```bash
-rm -rf ~/.config/bluos-controller
-rm ~/local/bin/bluos-controller
+rm -rf ~/.config/blucommand
+rm ~/local/bin/blucommand
 ```
 
 ## Documentation

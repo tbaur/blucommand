@@ -1,5 +1,5 @@
 """
-Integration tests for BluOS Controller.
+Integration tests for Blucommand.
 """
 import pytest
 import json

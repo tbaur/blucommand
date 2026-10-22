@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Configuration management for BluOS Controller.
+Configuration management for Blucommand.
 
 Copyright 2025 tbaur
 
@@ -26,7 +26,7 @@ from constants import CONFIG_FILE, CONFIG_FILE_JSON, DEFAULT_CONFIG_CONTENT
 from validators import validate_config_value
 from keychain import get_api_key
 
-logger = logging.getLogger("BluOS")
+logger = logging.getLogger("blucommand")
 
 # Secret config keys must not be returned by Config.get(); use dedicated accessors.
 _SECRET_CONFIG_KEYS = frozenset({"UNIFI_API_KEY"})

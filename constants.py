@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Shared constants for BluOS Controller.
+Shared constants for Blucommand.
 
 Copyright 2025 tbaur
 
@@ -21,12 +21,12 @@ import os
 __version__ = "1.4.3"  # x-release-please-version
 
 # --- PATHS ---
-BASE_DIR = os.path.expanduser("~/.config/bluos-controller")
+BASE_DIR = os.path.expanduser("~/.config/blucommand")
 CONFIG_FILE = os.path.join(BASE_DIR, "config.ini")
 CONFIG_FILE_JSON = os.path.join(BASE_DIR, "config.json")
 CACHE_FILE = os.path.join(BASE_DIR, "cache", "discovery.json")
 UNIFI_CACHE_FILE = os.path.join(BASE_DIR, "cache", "unifi.json")
-LOG_FILE = os.path.join(BASE_DIR, "bluos-controller.log")
+LOG_FILE = os.path.join(BASE_DIR, "blucommand.log")
 
 # Ensure cache directory exists with secure permissions
 cache_dir = os.path.join(BASE_DIR, "cache")
@@ -80,7 +80,7 @@ DISCOVERY_LSDP = "lsdp"
 DISCOVERY_BOTH = "both"  # Try both, prefer mDNS
 
 # --- DEFAULT CONFIGURATION ---
-DEFAULT_CONFIG_CONTENT = """# BluOS Controller Configuration
+DEFAULT_CONFIG_CONTENT = """# Blucommand Configuration
 BLUOS_SERVICE="_musc._tcp"
 DISCOVERY_METHOD=mdns
 DISCOVERY_TIMEOUT=5

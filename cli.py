@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CLI interface for BluOS Controller.
+CLI interface for Blucommand.
 
 Copyright 2025 tbaur
 
@@ -33,7 +33,7 @@ from utils import format_bytes, format_rate, format_uptime
 from validators import validate_volume, sanitize_ip, validate_ip
 from keychain import set_api_key, get_api_key, delete_api_key, has_api_key, is_macos
 
-logger = logging.getLogger("BluOS")
+logger = logging.getLogger("blucommand")
 
 
 def _player_api_base(device: PlayerStatus) -> Optional[str]:
@@ -44,7 +44,7 @@ def _player_api_base(device: PlayerStatus) -> Optional[str]:
 
 
 class BluOSCLI:
-    """Command-line interface for BluOS Controller."""
+    """Command-line interface for Blucommand."""
     
     def __init__(self, ctl: BluOSController):
         self.ctl = ctl
@@ -95,9 +95,9 @@ class BluOSCLI:
     
     def print_help(self) -> None:
         """Print help information."""
-        bc = f"{GREEN}bluos-controller{RESET}"
+        bc = f"{GREEN}blucommand{RESET}"
 
-        print(f"\n{BOLD}BluOS Controller{RESET}")
+        print(f"\n{BOLD}Blucommand{RESET}")
         print(f"{DIM}Command-line controller for BluOS devices on macOS.{RESET}\n")
 
         print(f"{BOLD}Usage:{RESET}  {bc} <command> [options]\n")
@@ -136,8 +136,8 @@ class BluOSCLI:
         print(f"  {GREEN}reboot{RESET}   {DIM}[name] [--soft]{RESET}           Reboot devices")
         print(f"  {GREEN}keychain{RESET} {DIM}set|get|delete{RESET}            Manage UniFi API key in macOS Keychain\n")
 
-        print(f"{BOLD}Config:{RESET}  {DIM}~/.config/bluos-controller/config.json{RESET}")
-        print(f"{BOLD}Debug:{RESET}   {DIM}BLUOS_DEBUG=1 bluos-controller <command>{RESET}\n")
+        print(f"{BOLD}Config:{RESET}  {DIM}~/.config/blucommand/config.json{RESET}")
+        print(f"{BOLD}Debug:{RESET}   {DIM}BLUCOMMAND_DEBUG=1 blucommand <command>{RESET}\n")
     
     def discover(self) -> None:
         """Discover and list devices."""

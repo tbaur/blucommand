@@ -28,7 +28,7 @@ from dataclasses import dataclass
 from constants import BLUOS_PORT
 from validators import validate_ip, sanitize_ip
 
-logger = logging.getLogger("BluOS")
+logger = logging.getLogger("blucommand")
 
 # LSDP Constants
 LSDP_PORT = 11430

@@ -22,7 +22,7 @@ A clear and concise description of what actually happened.
 ## Environment
 - **macOS Version**: (e.g., macOS 15.2)
 - **Python Version**: (e.g., Python 3.12)
-- **BluOS Controller Version**: (run `bluos-controller --version` if available, or commit hash)
+- **Blucommand Version**: (run `blucommand --version` if available, or commit hash)
 - **Device Model**: (e.g., BluOS Node 2i)
 
 ## Error Messages
@@ -43,5 +43,5 @@ If relevant, paste your configuration (remove any sensitive information):
 Add any other context about the problem here.
 
 ## Logs
-If applicable, add logs from `~/.config/bluos-controller/bluos-controller.log` (with sensitive information removed).
+If applicable, add logs from `~/.config/blucommand/blucommand.log` (with sensitive information removed).
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Data models for BluOS Controller.
+Data models for Blucommand.
 
 Copyright 2025 tbaur
 

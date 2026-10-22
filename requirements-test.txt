@@ -1,4 +1,4 @@
-# Test dependencies for bluos-controller
+# Test dependencies for blucommand
 # Version ranges compatible with Python 3.10-3.13
 pytest>=9.1.1,<10.0.0
 pytest-cov>=7.1.0,<8.0.0

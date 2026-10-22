@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-BluOS Unified Controller - Main entry point.
+Blucommand - Main entry point.
 
 Copyright 2025 tbaur
 
@@ -24,8 +24,8 @@ import re
 from pathlib import Path
 
 # Setup logging before other imports
-debug_mode = os.environ.get("BLUOS_DEBUG") == "1"
-structured_logging = os.environ.get("BLUOS_STRUCTURED_LOG") == "1"
+debug_mode = os.environ.get("BLUCOMMAND_DEBUG") == "1"
+structured_logging = os.environ.get("BLUCOMMAND_STRUCTURED_LOG") == "1"
 from utils import setup_logging
 logger = setup_logging(debug=debug_mode, structured=structured_logging)
 
@@ -55,8 +55,8 @@ def run_tests_and_update_docs() -> None:
     else:
         # If not found, try common locations
         possible_roots = [
-            Path.home() / "github" / "bluos-controller",
-            Path.home() / ".config" / "bluos-controller",
+            Path.home() / "github" / "blucommand",
+            Path.home() / ".config" / "blucommand",
             Path(__file__).parent,
         ]
         for root in possible_roots:
