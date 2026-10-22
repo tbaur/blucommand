@@ -118,7 +118,7 @@ def setup_logging(debug: bool = False, structured: bool = False) -> logging.Logg
     logger_instance.addHandler(console_handler)
     
     # File handler (always structured for better parsing)
-    from constants import LOG_FILE
+    from blucommand.constants import LOG_FILE
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     file_handler = logging.FileHandler(LOG_FILE)
     file_handler.setLevel(logging.DEBUG)

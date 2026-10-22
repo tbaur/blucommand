@@ -32,5 +32,5 @@ jobs:
     
     - name: Type check with mypy
       run: |
-        mypy main.py cli.py controller.py config.py constants.py models.py network.py utils.py validators.py keychain.py lsdp.py --ignore-missing-imports
+        mypy src/blucommand --ignore-missing-imports
 

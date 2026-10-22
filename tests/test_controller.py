@@ -8,9 +8,9 @@ import time
 from unittest.mock import patch, MagicMock, Mock, mock_open
 import xml.etree.ElementTree as ET
 
-from controller import BluOSController
-from models import PlayerStatus, UniFiClient
-from constants import CACHE_FILE, UNIFI_CACHE_FILE
+from blucommand.controller import BluOSController
+from blucommand.models import PlayerStatus, UniFiClient
+from blucommand.constants import CACHE_FILE, UNIFI_CACHE_FILE
 
 
 class TestBluOSController:
@@ -19,8 +19,8 @@ class TestBluOSController:
     @pytest.fixture
     def controller(self, temp_config_dir):
         """Create a controller instance for testing."""
-        with patch('controller.CACHE_FILE', os.path.join(temp_config_dir, "cache.json")), \
-             patch('controller.UNIFI_CACHE_FILE', os.path.join(temp_config_dir, "unifi.json")):
+        with patch('blucommand.controller.CACHE_FILE', os.path.join(temp_config_dir, "cache.json")), \
+             patch('blucommand.controller.UNIFI_CACHE_FILE', os.path.join(temp_config_dir, "unifi.json")):
             return BluOSController()
     
     def test_loads_discovery_cache(self, controller, temp_config_dir):
@@ -34,7 +34,7 @@ class TestBluOSController:
         with open(cache_file, 'w') as f:
             json.dump(cache_data, f)
         
-        with patch('controller.CACHE_FILE', cache_file):
+        with patch('blucommand.controller.CACHE_FILE', cache_file):
             result = controller._load_discovery_cache()
             assert result is True
             assert len(controller.ips) == 2
@@ -50,7 +50,7 @@ class TestBluOSController:
         with open(cache_file, 'w') as f:
             json.dump(cache_data, f)
         
-        with patch('controller.CACHE_FILE', cache_file):
+        with patch('blucommand.controller.CACHE_FILE', cache_file):
             controller.config.data['CACHE_TTL'] = '300'
             result = controller._load_discovery_cache()
             assert result is False
@@ -66,7 +66,7 @@ class TestBluOSController:
         with open(cache_file, 'w') as f:
             json.dump(cache_data, f)
         
-        with patch('controller.CACHE_FILE', cache_file):
+        with patch('blucommand.controller.CACHE_FILE', cache_file):
             result = controller._load_discovery_cache()
             # Bare IPs normalize to ip:11000; loopback rejected
             assert '192.168.1.1:11000' in controller.ips
@@ -95,7 +95,7 @@ class TestBluOSController:
             # Loopback should be rejected
             assert '127.0.0.1' not in result
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_get_device_info(self, mock_network, controller):
         """Test getting device information (no /diagnostics by default)."""
         sync_xml = b'<sync name="Test Speaker" modelName="Node" brand="BluOS" version="1.0"/>'
@@ -111,7 +111,7 @@ class TestBluOSController:
         assert mock_network.call_count == 2
         assert all('/diagnostics' not in str(c) for c in mock_network.call_args_list)
 
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_get_device_info_include_uptime(self, mock_network, controller):
         """Status path may request /diagnostics for uptime."""
         sync_xml = b'<sync name="Test Speaker" modelName="Node" brand="BluOS" version="1.0"/>'
@@ -130,7 +130,7 @@ class TestBluOSController:
         
         assert status.status == "invalid"
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_safe_xml_parsing(self, mock_network, controller):
         """Test safe XML parsing."""
         # Test with valid XML
@@ -141,7 +141,7 @@ class TestBluOSController:
     
     def test_safe_xml_parsing_rejects_large_xml(self, controller):
         """Test that large XML is rejected."""
-        from constants import MAX_XML_SIZE
+        from blucommand.constants import MAX_XML_SIZE
         large_xml = b'<sync>' + b'x' * (MAX_XML_SIZE + 1) + b'</sync>'
         
         root = controller._safe_parse_xml(large_xml, "192.168.1.1")
@@ -149,16 +149,16 @@ class TestBluOSController:
     
     def test_safe_xml_parsing_rejects_deep_xml(self, controller):
         """Test that deeply nested XML is rejected."""
-        from constants import MAX_XML_DEPTH
+        from blucommand.constants import MAX_XML_DEPTH
         # Create deeply nested XML
         deep_xml = b'<root>' + b'<nested>' * (MAX_XML_DEPTH + 5) + b'</nested>' * (MAX_XML_DEPTH + 5) + b'</root>'
         
         root = controller._safe_parse_xml(deep_xml, "192.168.1.1")
         assert root is None
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     @patch('os.path.exists')
-    @patch('config.get_api_key', return_value=None)
+    @patch('blucommand.config.get_api_key', return_value=None)
     def test_sync_unifi_success(self, mock_keychain, mock_exists, mock_network, controller):
         """Test successful UniFi sync for Wi‑Fi (STA rates, no device fetch)."""
         # Ensure cache doesn't exist so we test fresh fetch
@@ -200,9 +200,9 @@ class TestBluOSController:
         assert wifi.up_rate == 200
         assert mock_network.call_count == 1
 
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     @patch('os.path.exists')
-    @patch('config.get_api_key', return_value=None)
+    @patch('blucommand.config.get_api_key', return_value=None)
     def test_sync_unifi_wired_uses_switch_port_rates(
         self, mock_keychain, mock_exists, mock_network, controller
     ):
@@ -264,9 +264,9 @@ class TestBluOSController:
         assert wired.port_info == "9"
         assert mock_network.call_count == 2
 
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     @patch('os.path.exists')
-    @patch('config.get_api_key', return_value=None)
+    @patch('blucommand.config.get_api_key', return_value=None)
     def test_sync_unifi_wired_falls_back_to_client_rates(
         self, mock_keychain, mock_exists, mock_network, controller
     ):
@@ -316,7 +316,7 @@ class TestBluOSController:
         
         assert result == "SKIPPED"
     
-    @patch('config.get_api_key', return_value=None)
+    @patch('blucommand.config.get_api_key', return_value=None)
     def test_sync_unifi_missing_config(self, mock_keychain, controller):
         """Test UniFi sync with missing config."""
         controller.ips = ['192.168.1.1']
@@ -330,9 +330,9 @@ class TestBluOSController:
         
         assert result == "MISSING_CONFIG"
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     @patch('os.path.exists')
-    @patch('config.get_api_key', return_value='keychain-api-key')
+    @patch('blucommand.config.get_api_key', return_value='keychain-api-key')
     def test_sync_unifi_uses_keychain(self, mock_keychain, mock_exists, mock_network, controller):
         """Test that UniFi sync uses API key from Keychain when available."""
         # Ensure cache doesn't exist so we test fresh fetch
@@ -387,7 +387,7 @@ class TestBluOSController:
         assert index[('aa:bb:cc:dd:ee:ff', 3)] == (1000.0, 200.0)
         assert ('aa:bb:cc:dd:ee:ff', 'bad') not in index
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_get_sys_uptime(self, mock_network, controller):
         """Test getting system uptime."""
         mock_network.return_value = b'<html><div>Uptime:</div><div>2 days</div></html>'
@@ -395,10 +395,27 @@ class TestBluOSController:
         result = controller.get_sys_uptime("192.168.1.1")
         
         assert result == "2 days"
+
+    @patch("blucommand.controller.Network.get")
+    def test_get_sys_uptime_definition_list(self, mock_network, controller):
+        """Firmware 4.18 prints uptime as a definition list on port 80."""
+        mock_network.return_value = b"<dl><dt>Uptime:</dt><dd>1h2m3s</dd></dl>"
+
+        assert controller.get_sys_uptime("192.168.1.1") == "1h2m3s"
+        assert mock_network.call_args[0][0] == "http://192.168.1.1/diagnostics"
     
     def test_get_sys_uptime_invalid_ip(self, controller):
         """Test getting uptime with invalid IP."""
         result = controller.get_sys_uptime("127.0.0.1")
-        
         assert result == "N/A"
+
+    @patch("blucommand.controller.Network.post")
+    def test_reboot_uses_web_ui_form(self, mock_post, controller):
+        """Reboot posts the port-80 confirmation form."""
+        mock_post.return_value = b"ok"
+        assert controller.reboot("192.168.1.100") is True
+        url = mock_post.call_args[0][0]
+        data = mock_post.call_args[1]["data"]
+        assert url == "http://192.168.1.100/reboot"
+        assert data == {"yes": "1"}
 

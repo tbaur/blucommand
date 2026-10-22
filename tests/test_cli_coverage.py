@@ -5,10 +5,10 @@ import pytest
 from unittest.mock import patch, MagicMock
 from concurrent.futures import as_completed
 
-from cli import BluOSCLI
-from controller import BluOSController
-from models import PlayerStatus
-from constants import MAX_WORKERS_DISCOVERY
+from blucommand.cli import BluOSCLI
+from blucommand.controller import BluOSController
+from blucommand.models import PlayerStatus
+from blucommand.constants import MAX_WORKERS_DISCOVERY
 
 
 class TestCLICoverage:
@@ -34,8 +34,8 @@ class TestCLICoverage:
         mock_future = MagicMock()
         mock_future.result.return_value = PlayerStatus(ip="192.168.1.100", name="Test Speaker")
         
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -54,8 +54,8 @@ class TestCLICoverage:
         mock_future = MagicMock()
         mock_future.result.return_value = PlayerStatus(ip="192.168.1.100", name="Test Speaker")
         
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -73,8 +73,8 @@ class TestCLICoverage:
         mock_future = MagicMock()
         mock_future.result.return_value = PlayerStatus(ip="192.168.1.100", name="Test Speaker")
         
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -92,8 +92,8 @@ class TestCLICoverage:
         mock_future = MagicMock()
         mock_future.result.return_value = PlayerStatus(ip="192.168.1.100", name="Test Speaker")
         
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -111,8 +111,8 @@ class TestCLICoverage:
         mock_future = MagicMock()
         mock_future.result.return_value = PlayerStatus(ip="192.168.1.100", name="Test Speaker")
         
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -135,8 +135,8 @@ class TestCLICoverage:
         mock_future = MagicMock()
         mock_future.result.return_value = PlayerStatus(ip="192.168.1.100", name="Test Speaker")
         
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -160,8 +160,8 @@ class TestCLICoverage:
         mock_future2 = MagicMock()
         mock_future2.result.return_value = PlayerStatus(ip="192.168.1.101", name="Test Speaker 2")
         
-        with patch('cli.as_completed', return_value=[mock_future1, mock_future2]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future1, mock_future2]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -183,8 +183,8 @@ class TestCLICoverage:
         mock_future = MagicMock()
         mock_future.result.return_value = PlayerStatus(ip="192.168.1.100", name="Test Speaker")
         
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -229,8 +229,8 @@ class TestCLICoverage:
         mock_future2 = MagicMock()
         mock_future2.result.return_value = slave
         
-        with patch('cli.as_completed', return_value=[mock_future1, mock_future2]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future1, mock_future2]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -360,8 +360,8 @@ class TestCLICoverage:
         mock_future = MagicMock()
         mock_future.result.return_value = PlayerStatus(ip="192.168.1.100", name="Test Speaker")
         
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -388,8 +388,8 @@ class TestCLICoverage:
         mock_future2 = MagicMock()
         mock_future2.result.return_value = PlayerStatus(ip="192.168.1.101", name="Player A", master="192.168.1.100")
         
-        with patch('cli.as_completed', return_value=[mock_future1, mock_future2]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future1, mock_future2]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -408,8 +408,8 @@ class TestCLICoverage:
         mock_future = MagicMock()
         mock_future.result.return_value = PlayerStatus(ip="192.168.1.100", name="Test Speaker")
         
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)

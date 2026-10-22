@@ -7,9 +7,9 @@ import os
 import time
 from unittest.mock import patch, MagicMock
 
-from controller import BluOSController
-from cli import BluOSCLI
-from models import PlayerStatus
+from blucommand.controller import BluOSController
+from blucommand.cli import BluOSCLI
+from blucommand.models import PlayerStatus
 
 
 class TestIntegration:
@@ -18,8 +18,8 @@ class TestIntegration:
     @pytest.fixture
     def controller(self, temp_config_dir):
         """Create controller for integration tests."""
-        with patch('controller.CACHE_FILE', os.path.join(temp_config_dir, "cache.json")), \
-             patch('controller.UNIFI_CACHE_FILE', os.path.join(temp_config_dir, "unifi.json")):
+        with patch('blucommand.controller.CACHE_FILE', os.path.join(temp_config_dir, "cache.json")), \
+             patch('blucommand.controller.UNIFI_CACHE_FILE', os.path.join(temp_config_dir, "unifi.json")):
             return BluOSController()
     
     @pytest.fixture
@@ -27,9 +27,9 @@ class TestIntegration:
         """Create CLI for integration tests."""
         return BluOSCLI(controller)
     
-    @patch('controller.Network.get', return_value=b'<SyncStatus name="ok"/>')
-    @patch('controller.BluOSController._discover_mdns')
-    @patch('controller.BluOSController._discover_lsdp')
+    @patch('blucommand.controller.Network.get', return_value=b'<SyncStatus name="ok"/>')
+    @patch('blucommand.controller.BluOSController._discover_mdns')
+    @patch('blucommand.controller.BluOSController._discover_lsdp')
     def test_full_discovery_flow(
         self, mock_lsdp, mock_mdns, _mock_net, controller, temp_config_dir
     ):
@@ -44,7 +44,7 @@ class TestIntegration:
 
         assert controller.ips == ['192.168.1.100:11000']
     
-    @patch('controller.Network.get')
+    @patch('blucommand.controller.Network.get')
     def test_status_command_flow(self, mock_network, controller, cli):
         """Test status command flow."""
         controller.ips = ['192.168.1.1']
@@ -69,7 +69,7 @@ class TestIntegration:
             
             args = Namespace(cmd='150', target='all')  # Invalid volume
             
-            with patch('cli.Network.get'):
+            with patch('blucommand.cli.Network.get'):
                 # Should handle invalid volume gracefully
                 cli.volume(args)
     
@@ -80,7 +80,7 @@ class TestIntegration:
         assert status.status == "invalid"
         
         # Valid IP should work (with mocked network)
-        with patch('controller.Network.get') as mock_network:
+        with patch('blucommand.controller.Network.get') as mock_network:
             mock_network.return_value = b'<sync name="Test"/>'
             status = controller.get_device_info("192.168.1.1")
             assert status.ip == "192.168.1.1"

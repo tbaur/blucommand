@@ -7,8 +7,8 @@ import json
 import time
 from unittest.mock import patch, MagicMock, mock_open
 
-from controller import BluOSController
-from constants import CACHE_FILE, DISCOVERY_MDNS, DISCOVERY_LSDP, DISCOVERY_BOTH
+from blucommand.controller import BluOSController
+from blucommand.constants import CACHE_FILE, DISCOVERY_MDNS, DISCOVERY_LSDP, DISCOVERY_BOTH
 
 
 class TestControllerCoverage:
@@ -18,7 +18,7 @@ class TestControllerCoverage:
     def _mock_endpoint_verify(self):
         """Avoid real LAN probes during discover() unit tests."""
         with patch(
-            'controller.Network.get',
+            'blucommand.controller.Network.get',
             return_value=b'<SyncStatus name="ok"/>',
         ):
             yield
@@ -42,7 +42,7 @@ class TestControllerCoverage:
     def test_discover_lsdp_error(self, controller):
         """Test discover when LSDP raises exception."""
         with patch.object(controller, '_discover_mdns', return_value=[]):
-            with patch('controller.LSDPDiscovery') as mock_lsdp_class:
+            with patch('blucommand.controller.LSDPDiscovery') as mock_lsdp_class:
                 mock_lsdp_class.side_effect = Exception("LSDP error")
                 with patch.object(controller.config, 'get', side_effect=lambda k, d=None: {
                     'DISCOVERY_METHOD': DISCOVERY_LSDP,
@@ -59,7 +59,7 @@ class TestControllerCoverage:
                     'DISCOVERY_METHOD': DISCOVERY_BOTH,
                     'DISCOVERY_TIMEOUT': 5
                 }.get(k, d)):
-                    with patch('controller.validate_ip', side_effect=lambda x: True):
+                    with patch('blucommand.controller.validate_ip', side_effect=lambda x: True):
                         controller.discover(force_refresh=True)
                         # Both methods should be called, but only unique IPs kept
                         assert len(controller.ips) >= 1
@@ -72,7 +72,7 @@ class TestControllerCoverage:
                     'DISCOVERY_METHOD': DISCOVERY_BOTH,
                     'DISCOVERY_TIMEOUT': 5
                 }.get(k, d)):
-                    with patch('controller.validate_ip', side_effect=lambda x: True):
+                    with patch('blucommand.controller.validate_ip', side_effect=lambda x: True):
                         controller.discover(force_refresh=True)
                         assert len(controller.ips) == 1
     
@@ -96,14 +96,14 @@ class TestControllerCoverage:
     
     def test_discover_lsdp_exception(self, controller):
         """Test _discover_lsdp with exception."""
-        with patch('controller.LSDPDiscovery') as mock_lsdp_class:
+        with patch('blucommand.controller.LSDPDiscovery') as mock_lsdp_class:
             mock_lsdp_class.side_effect = Exception("Error")
             result = controller._discover_lsdp(5)
             assert result == []
     
     def test_discover_lsdp_calls_discover(self, controller):
         """Test _discover_lsdp calls discover."""
-        with patch('controller.LSDPDiscovery') as mock_lsdp_class:
+        with patch('blucommand.controller.LSDPDiscovery') as mock_lsdp_class:
             mock_lsdp = MagicMock()
             mock_lsdp.discover.return_value = ['192.168.1.100']
             mock_lsdp_class.return_value = mock_lsdp

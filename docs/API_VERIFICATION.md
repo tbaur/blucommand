@@ -1,6 +1,6 @@
 # BluOS API Notes
 
-Source of truth: [BluOS Custom Integration API v1.7](https://bluesoundprofessional.com/wp-content/uploads/2025/06/BluOS-Custom-Integration-API_v1.7.pdf) (also published at bluos.io). Verified against LAN players on firmware 4.16.x.
+Source of truth: [BluOS Custom Integration API v1.7](https://bluesoundprofessional.com/wp-content/uploads/2025/06/BluOS-Custom-Integration-API_v1.7.pdf) (also published at bluos.io). Checked against BluOS firmware 4.18. The PDF is not sufficient on its own.
 
 The BluOS API is device-specific. Each player endpoint responds independently over HTTP — typically port **11000** for primary zones, and **11010+** for CI secondary zones (e.g. NAD CI S2 `_musp` SRV records). There are no broadcast or multi-device endpoints — multi-device control is implemented client-side by iterating over discovered `ip:port` endpoints.
 
@@ -15,11 +15,11 @@ The BluOS API is device-specific. Each player endpoint responds independently ov
 | Presets | `/Presets`, `/Preset?id=` | Per-device presets |
 | Sync | `/AddSlave`, `/RemoveSlave`, `/SyncStatus` | Primary controls runtime group |
 | Status | `/Status` | Volume, state, track info |
-| System | `/Reboot` (POST), `/diagnostics` | Per-device |
+| System | POST `/reboot` on port 80 with `yes=1`, `/diagnostics` on port 80 | The BluOS port has no reboot handler |
 
 ### Do not use (legacy / non-spec)
 
-These return **404** on current firmware (verified 4.16.6): `/Queue`, `/AudioInputs`, `/AudioInput`, `/AudioModes`.
+These return **404** on firmware 4.18: `/Queue`, `/AudioInputs`, `/AudioInput`, `/AudioModes`, and `:11000/diagnostics`. Uptime is on port 80 `/diagnostics`, in `<dt>Uptime:</dt><dd>…</dd>`.
 
 Legacy sync query forms (`/Sync?slave=`, `/Sync?remove=`) may still exist on some firmware versions, but current BluOS grouping uses **`AddSlave`** and **`RemoveSlave`** on the primary player.
 
@@ -31,7 +31,7 @@ Song entries use elements `title`, `art` (artist), `alb` (album), `service`, plu
 
 `GET /Settings?id=capture&schemaVersion=32` returns a settings tree. Input sources are `menuGroup` nodes under `capture` (e.g. `capture-input0` = Analog). Bluetooth mode is the `setting` with `id="bluetoothAutoplay"` (`value` 0–3).
 
-Select an input with `GET /Play?inputTypeIndex=<type>-<n>` where type is `analog`, `spdif`, `arc`, etc.
+Select an input with `GET /Play?inputType=<type>&index=<n>` (firmware 4.18). `GET /Play?inputTypeIndex=<type>-<n>` returns 404 on that firmware and remains as a fallback.
 
 ## SyncStatus XML
 

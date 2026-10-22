@@ -2,7 +2,7 @@
 Tests for validators module.
 """
 import pytest
-from validators import (
+from blucommand.validators import (
     validate_ip, validate_hostname, sanitize_ip,
     validate_volume, validate_timeout, validate_config_value,
     parse_endpoint, format_endpoint, sanitize_endpoint,

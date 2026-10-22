@@ -6,7 +6,7 @@ import shutil
 import json
 from unittest.mock import Mock, patch
 
-from constants import BASE_DIR
+from blucommand.constants import BASE_DIR
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def temp_config_dir():
     os.makedirs(cache_dir, exist_ok=True)
     
     # Patch BASE_DIR for tests
-    with patch('constants.BASE_DIR', temp_dir):
+    with patch('blucommand.constants.BASE_DIR', temp_dir):
         yield temp_dir
     
     shutil.rmtree(temp_dir)

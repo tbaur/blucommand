@@ -113,18 +113,11 @@ pytest tests/test_validators.py -v
 
 ```
 blucommand/
-├── main.py              # Entry point
-├── constants.py         # Constants
-├── models.py            # Data models
-├── validators.py        # Input validation
-├── config.py            # Configuration
-├── network.py           # Network I/O
-├── utils.py             # Utilities
-├── controller.py        # Core logic
-├── cli.py               # CLI interface
-├── lsdp.py              # LSDP discovery
-├── tests/               # Test suite
-└── docs/                # Documentation
+├── src/blucommand/      # Installable package
+├── tests/               # Pytest suite
+├── docs/                # Longer guides
+├── install.sh
+└── pyproject.toml
 ```
 
 ## Areas for Contribution

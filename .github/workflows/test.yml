@@ -37,7 +37,7 @@ jobs:
     
     - name: Run tests
       run: |
-        pytest tests/ -v --cov=. --cov-report=xml --cov-report=term-missing --cov-fail-under=80 --tb=short --maxfail=5 --disable-warnings
+        pytest tests/ -v --cov=blucommand --cov-report=xml --cov-report=term-missing --cov-fail-under=80 --tb=short --maxfail=5 --disable-warnings
       continue-on-error: false
       env:
         BLUCOMMAND_DEBUG: 0

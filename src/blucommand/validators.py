@@ -84,7 +84,7 @@ def validate_hostname(hostname: str) -> bool:
     - Format validation (prevents shell injection)
     - Character validation (rejects dangerous characters)
     """
-    from constants import MAX_HOSTNAME_LENGTH
+    from blucommand.constants import MAX_HOSTNAME_LENGTH
     
     # Type and basic validation
     if not hostname or not isinstance(hostname, str):
@@ -138,7 +138,7 @@ def parse_endpoint(value: str, default_port: Optional[int] = None) -> tuple[Opti
 
     Returns ``(None, default_port)`` when the IP is invalid.
     """
-    from constants import BLUOS_PORT
+    from blucommand.constants import BLUOS_PORT
 
     if default_port is None:
         default_port = BLUOS_PORT
@@ -170,7 +170,7 @@ def parse_endpoint(value: str, default_port: Optional[int] = None) -> tuple[Opti
 
 def format_endpoint(ip: str, port: Optional[int] = None) -> str:
     """Return canonical ``ip:port`` endpoint string."""
-    from constants import BLUOS_PORT
+    from blucommand.constants import BLUOS_PORT
 
     if port is None:
         port = BLUOS_PORT
@@ -204,7 +204,7 @@ def validate_volume(volume: int) -> int:
     - Range validation (prevents out-of-bounds values)
     - Safe conversion (handles edge cases)
     """
-    from constants import MIN_VOLUME, MAX_VOLUME
+    from blucommand.constants import MIN_VOLUME, MAX_VOLUME
     
     # Type checking
     if not isinstance(volume, (int, float, str)):
@@ -234,7 +234,7 @@ def validate_timeout(timeout: int, min_val: Optional[int] = None, max_val: Optio
     Returns:
         Timeout clamped to valid range
     """
-    from constants import MIN_TIMEOUT, MAX_TIMEOUT
+    from blucommand.constants import MIN_TIMEOUT, MAX_TIMEOUT
     min_val = min_val if min_val is not None else MIN_TIMEOUT
     max_val = max_val if max_val is not None else MAX_TIMEOUT
     return max(min_val, min(max_val, int(timeout)))
@@ -266,7 +266,7 @@ def validate_config_value(key: str, value: str) -> Optional[str]:
     
     elif key_upper == 'CACHE_TTL':
         try:
-            from constants import MIN_CACHE_TTL, MAX_CACHE_TTL
+            from blucommand.constants import MIN_CACHE_TTL, MAX_CACHE_TTL
             ttl = max(MIN_CACHE_TTL, min(MAX_CACHE_TTL, int(value)))
             return str(ttl)
         except (ValueError, TypeError):

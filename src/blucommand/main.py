@@ -26,11 +26,11 @@ from pathlib import Path
 # Setup logging before other imports
 debug_mode = os.environ.get("BLUCOMMAND_DEBUG") == "1"
 structured_logging = os.environ.get("BLUCOMMAND_STRUCTURED_LOG") == "1"
-from utils import setup_logging
+from blucommand.utils import setup_logging
 logger = setup_logging(debug=debug_mode, structured=structured_logging)
 
-from controller import BluOSController
-from cli import BluOSCLI
+from blucommand.controller import BluOSController
+from blucommand.cli import BluOSCLI
 
 
 def run_tests_and_update_docs() -> None:
@@ -272,12 +272,11 @@ def main() -> None:
     toggle_cmd = sub.add_parser("toggle")
     toggle_cmd.add_argument("target", nargs="?", default=None)
     
-    # Queue management
+    # Queue management. `parts` is everything after the action word.
+    # `queue move 3 1` and `queue move 3 1 "Zone One"` match the documented order.
     queue_cmd = sub.add_parser("queue")
     queue_cmd.add_argument("action", nargs="?", default="show")
-    queue_cmd.add_argument("target", nargs="?", default=None)
-    queue_cmd.add_argument("from_index", nargs="?", default=None, help="From index (for move)")
-    queue_cmd.add_argument("to_index", nargs="?", default=None, help="To index (for move)")
+    queue_cmd.add_argument("parts", nargs="*")
     
     # Input management
     inputs_cmd = sub.add_parser("inputs")
@@ -313,7 +312,6 @@ def main() -> None:
     
     # Reboot
     reboot_cmd = sub.add_parser("reboot")
-    reboot_cmd.add_argument("--soft", action="store_true", help="Soft reboot")
     reboot_cmd.add_argument("target", nargs="?", default=None, help="Target device name (optional)")
     
     # Keychain management
@@ -367,10 +365,7 @@ def main() -> None:
     elif args.command == "sync":
         cli.sync(args)
     elif args.command == "reboot":
-        if getattr(args, 'soft', False):
-            cli.soft_reboot(args)
-        else:
-            cli.reboot(args)
+        cli.reboot(args)
     elif args.command == "diagnose":
         cli.diagnose(args.target)
     elif args.command == "keychain":

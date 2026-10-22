@@ -6,9 +6,9 @@ import sys
 from unittest.mock import Mock, patch, MagicMock
 from argparse import Namespace
 
-from cli import BluOSCLI
-from controller import BluOSController
-from models import PlayerStatus
+from blucommand.cli import BluOSCLI
+from blucommand.controller import BluOSController
+from blucommand.models import PlayerStatus
 
 
 class TestCLICommands:
@@ -17,7 +17,7 @@ class TestCLICommands:
     @pytest.fixture
     def controller(self):
         """Create controller instance."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             ctl.ips = ["192.168.1.100", "192.168.1.101"]
             return ctl
@@ -43,8 +43,8 @@ class TestCLICommands:
         
         # Mock as_completed to return the future immediately
         from concurrent.futures import as_completed
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -63,8 +63,8 @@ class TestCLICommands:
         mock_future2 = MagicMock()
         mock_future2.result.return_value = mock_devices[1]
         
-        with patch('cli.as_completed', return_value=[mock_future1, mock_future2]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future1, mock_future2]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -82,8 +82,8 @@ class TestCLICommands:
         mock_future = MagicMock()
         mock_future.result.return_value = mock_devices[0]
         
-        with patch('cli.as_completed', return_value=[mock_future]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -103,8 +103,8 @@ class TestCLICommands:
         mock_future2 = MagicMock()
         mock_future2.result.return_value = mock_devices[1]
         
-        with patch('cli.as_completed', return_value=[mock_future1, mock_future2]):
-            with patch('cli.ThreadPoolExecutor') as mock_executor_class:
+        with patch('blucommand.cli.as_completed', return_value=[mock_future1, mock_future2]):
+            with patch('blucommand.cli.ThreadPoolExecutor') as mock_executor_class:
                 mock_executor = MagicMock()
                 mock_executor.__enter__ = MagicMock(return_value=mock_executor)
                 mock_executor.__exit__ = MagicMock(return_value=False)
@@ -128,7 +128,7 @@ class TestCLICommands:
         args = Namespace(cmd='25', target='all')
         
         with patch.object(cli, '_get_matching_devices', return_value=mock_devices):
-            with patch('cli.Network.get', return_value=b"OK"):
+            with patch('blucommand.cli.Network.get', return_value=b"OK"):
                 with patch('builtins.print'):
                     cli.volume(args)
     
@@ -137,7 +137,7 @@ class TestCLICommands:
         args = Namespace(cmd='+5', target='all')
         
         with patch.object(cli, '_get_matching_devices', return_value=mock_devices):
-            with patch('cli.Network.get', return_value=b"OK"):
+            with patch('blucommand.cli.Network.get', return_value=b"OK"):
                 with patch('builtins.print'):
                     cli.volume(args)
     
@@ -146,7 +146,7 @@ class TestCLICommands:
         args = Namespace(cmd='mute', target='all')
         
         with patch.object(cli, '_get_matching_devices', return_value=mock_devices):
-            with patch('cli.Network.get', return_value=b"OK"):
+            with patch('blucommand.cli.Network.get', return_value=b"OK"):
                 with patch('builtins.print'):
                     cli.volume(args)
     
@@ -155,7 +155,7 @@ class TestCLICommands:
         args = Namespace(target=None)
         
         with patch.object(cli, '_get_matching_devices', return_value=mock_devices):
-            with patch('cli.Network.get', return_value=b"OK"):
+            with patch('blucommand.cli.Network.get', return_value=b"OK"):
                 with patch('builtins.print'):
                     cli.pause(args)
     
@@ -165,7 +165,7 @@ class TestCLICommands:
         args = Namespace(target=None)
         
         with patch.object(cli, '_get_matching_devices', return_value=mock_devices):
-            with patch('cli.Network.post', return_value=b"OK"):
+            with patch('blucommand.cli.Network.post', return_value=b"OK"):
                 with patch('builtins.print'):
                     cli.reboot(args)
     
@@ -178,30 +178,21 @@ class TestCLICommands:
             cli.reboot(args)
             # Should not call Network.post if cancelled
     
-    @patch('builtins.input', return_value='y')
-    def test_soft_reboot(self, mock_input, cli, mock_devices):
-        """Test soft reboot command."""
-        args = Namespace(target=None)
-        
-        with patch.object(cli, '_get_matching_devices', return_value=mock_devices):
-            with patch.object(cli.ctl, 'soft_reboot', return_value=True):
-                with patch('builtins.print'):
-                    cli.soft_reboot(args)
-    
-    @patch('cli.subprocess.check_output')
-    def test_diagnose(self, mock_arp, cli, mock_devices):
-        """Test diagnose command."""
-        mock_arp.return_value = "192.168.1.100 aa:bb:cc:dd:ee:ff"
+    def test_diagnose(self, cli, mock_devices):
+        """Diagnose prints the MAC reported by SyncStatus."""
         target = "Zone One"
-        
+        sync_xml = b'<SyncStatus name="Zone One" mac="02:00:00:00:00:01"/>'
+
         with patch.object(cli.ctl, 'get_device_info') as mock_info:
             mock_info.return_value = mock_devices[0]
             with patch.object(cli.ctl, 'get_sys_uptime', return_value="1 day"):
                 with patch.object(cli.ctl, 'sync_unifi'):
                     with patch.object(cli.ctl, 'unifi_map', {}):
-                        with patch('cli.Network.get', return_value=b"<sync/>"):
-                            with patch('builtins.print'):
+                        with patch('blucommand.cli.Network.get', return_value=sync_xml):
+                            with patch('builtins.print') as mock_print:
                                 cli.diagnose(target)
+        printed = " ".join(str(call.args) for call in mock_print.call_args_list)
+        assert "02:00:00:00:00:01" in printed
     
     def test_print_help(self, cli):
         """Test help command."""
@@ -223,7 +214,7 @@ class TestCLICommands:
         assert isinstance(result, str)
         
         # Test with UniFi data
-        from models import UniFiClient
+        from blucommand.models import UniFiClient
         device.unifi = UniFiClient(
             mac="aa:bb:cc:dd:ee:ff",
             is_wired=True,

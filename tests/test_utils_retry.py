@@ -5,7 +5,7 @@ import pytest
 import time
 from unittest.mock import patch, MagicMock
 
-from utils import retry_with_backoff, RateLimiter, get_rate_limiter, StructuredFormatter
+from blucommand.utils import retry_with_backoff, RateLimiter, get_rate_limiter, StructuredFormatter
 import logging
 
 

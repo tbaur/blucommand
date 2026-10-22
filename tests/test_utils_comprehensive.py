@@ -6,7 +6,7 @@ import os
 import json
 from unittest.mock import patch, mock_open
 
-from utils import format_bytes, format_rate, format_uptime, atomic_write, setup_logging
+from blucommand.utils import format_bytes, format_rate, format_uptime, atomic_write, setup_logging
 
 
 class TestFormatBytes:

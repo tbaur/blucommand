@@ -6,10 +6,10 @@ import json
 import os
 import tempfile
 from unittest.mock import patch, mock_open
-import config as config_module
+import blucommand.config as config_module
 
-from config import Config
-from constants import CONFIG_FILE_JSON, CONFIG_FILE
+from blucommand.config import Config
+from blucommand.constants import CONFIG_FILE_JSON, CONFIG_FILE
 
 
 class TestConfig:
@@ -29,7 +29,7 @@ class TestConfig:
         with open(config_file, 'w') as f:
             json.dump(config_data, f)
         
-        with patch('config.CONFIG_FILE_JSON', config_file):
+        with patch('blucommand.config.CONFIG_FILE_JSON', config_file):
             config = Config()
             assert config.get('BLUOS_SERVICE') == "_musc._tcp"
             assert config.get('DISCOVERY_TIMEOUT') == "5"
@@ -39,7 +39,7 @@ class TestConfig:
         """Test creation of default config when missing."""
         config_file = os.path.join(temp_config_dir, "config.json")
         
-        with patch('config.CONFIG_FILE_JSON', config_file):
+        with patch('blucommand.config.CONFIG_FILE_JSON', config_file):
             config = Config()
             # Should create default config
             assert os.path.exists(config_file)
@@ -57,7 +57,7 @@ class TestConfig:
         with open(config_file, 'w') as f:
             json.dump(config_data, f)
         
-        with patch('config.CONFIG_FILE_JSON', config_file):
+        with patch('blucommand.config.CONFIG_FILE_JSON', config_file):
             config = Config()
             # Values should be validated/clamped
             timeout = int(config.get('DISCOVERY_TIMEOUT', '5'))
@@ -71,7 +71,7 @@ class TestConfig:
         with open(config_file, 'w') as f:
             json.dump(config_data, f)
         
-        with patch('config.CONFIG_FILE_JSON', config_file):
+        with patch('blucommand.config.CONFIG_FILE_JSON', config_file):
             config = Config()
             assert config.get('MISSING_KEY', 'default') == 'default'
             assert config.get('BLUOS_SERVICE') == "_musc._tcp"
@@ -84,7 +84,7 @@ class TestConfig:
         with open(config_file, 'w') as f:
             json.dump(config_data, f)
         
-        with patch('config.CONFIG_FILE_JSON', config_file):
+        with patch('blucommand.config.CONFIG_FILE_JSON', config_file):
             config = Config()
             assert config.get('BLUOS_SERVICE') == "_musc._tcp"
             assert config.get('bluos_service') == "_musc._tcp"
@@ -96,7 +96,7 @@ class TestConfig:
         with open(config_file, 'w') as f:
             f.write("invalid json {")
         
-        with patch('config.CONFIG_FILE_JSON', config_file):
+        with patch('blucommand.config.CONFIG_FILE_JSON', config_file):
             config = Config()
             # Should handle error gracefully
             assert config.data == {}
@@ -110,8 +110,8 @@ class TestConfig:
             f.write('BLUOS_SERVICE="_musc._tcp"\n')
             f.write('DISCOVERY_TIMEOUT=5\n')
         
-        with patch('config.CONFIG_FILE', ini_file), \
-             patch('config.CONFIG_FILE_JSON', json_file):
+        with patch('blucommand.config.CONFIG_FILE', ini_file), \
+             patch('blucommand.config.CONFIG_FILE_JSON', json_file):
             config = Config()
             assert config.get('BLUOS_SERVICE') == "_musc._tcp"
             assert config.get('DISCOVERY_TIMEOUT') == "5"
@@ -128,7 +128,7 @@ class TestConfig:
         
         # Patch both the config file path and the keychain function
         # Use patch.object to ensure we patch the function in the config module
-        with patch('config.CONFIG_FILE_JSON', config_file), \
+        with patch('blucommand.config.CONFIG_FILE_JSON', config_file), \
              patch.object(config_module, 'get_api_key', return_value="keychain-key"):
             # Create Config instance after patches are applied
             config = Config()
@@ -150,7 +150,7 @@ class TestConfig:
         
         # Patch both the config file path and the keychain function
         # Use patch.object to ensure we patch the function in the config module
-        with patch('config.CONFIG_FILE_JSON', config_file), \
+        with patch('blucommand.config.CONFIG_FILE_JSON', config_file), \
              patch.object(config_module, 'get_api_key', return_value=None):
             # Create Config instance after patches are applied
             config = Config()
@@ -165,7 +165,7 @@ class TestConfig:
         with open(config_file, 'w') as f:
             json.dump({"BLUOS_SERVICE": "_musc._tcp"}, f)
 
-        with patch('config.CONFIG_FILE_JSON', config_file), \
+        with patch('blucommand.config.CONFIG_FILE_JSON', config_file), \
              patch.object(config_module, 'get_api_key', return_value=None):
             config = Config()
             assert config.get_unifi_api_key() is None

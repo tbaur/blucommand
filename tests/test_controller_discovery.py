@@ -5,8 +5,8 @@ import pytest
 import subprocess
 from unittest.mock import patch, MagicMock, mock_open
 
-from controller import BluOSController
-from constants import DISCOVERY_MDNS, DISCOVERY_LSDP, DISCOVERY_BOTH, CACHE_FILE
+from blucommand.controller import BluOSController
+from blucommand.constants import DISCOVERY_MDNS, DISCOVERY_LSDP, DISCOVERY_BOTH, CACHE_FILE
 
 
 class TestDiscoveryMethods:
@@ -16,7 +16,7 @@ class TestDiscoveryMethods:
     def _mock_endpoint_verify(self):
         """Avoid real LAN probes during discover() unit tests."""
         with patch(
-            'controller.Network.get',
+            'blucommand.controller.Network.get',
             return_value=b'<SyncStatus name="ok"/>',
         ):
             yield
@@ -24,7 +24,7 @@ class TestDiscoveryMethods:
     @pytest.fixture
     def controller(self):
         """Create controller instance."""
-        with patch('controller.Config'):
+        with patch('blucommand.controller.Config'):
             ctl = BluOSController()
             ctl.ips = []
             return ctl
@@ -32,7 +32,7 @@ class TestDiscoveryMethods:
     def test_verify_endpoints_keeps_responders(self, controller):
         """Unreachable endpoints are dropped after discovery."""
         with patch(
-            'controller.Network.get',
+            'blucommand.controller.Network.get',
             side_effect=[b'<SyncStatus name="ok"/>', None],
         ):
             result = controller._verify_endpoints(
@@ -53,8 +53,8 @@ class TestDiscoveryMethods:
                 '_discover_mdns',
                 return_value=['192.168.1.1:11000'],
             ):
-                with patch('controller.Network.get', return_value=None):
-                    with patch('controller.atomic_write') as mock_write:
+                with patch('blucommand.controller.Network.get', return_value=None):
+                    with patch('blucommand.controller.atomic_write') as mock_write:
                         controller.discover(force_refresh=True)
 
         assert controller.ips == []
@@ -161,7 +161,7 @@ class TestDiscoveryMethods:
         assert '192.168.1.100:11000' in result
         assert '192.168.1.100:11010' in result
 
-    @patch('controller.subprocess.check_output')
+    @patch('blucommand.controller.subprocess.check_output')
     def test_resolve_hosts(self, mock_check, controller):
         """Test hostname resolution."""
         mock_check.return_value = "ip_address: 192.168.1.100\n"
@@ -169,7 +169,7 @@ class TestDiscoveryMethods:
         result = controller._resolve_hosts(hosts)
         assert '192.168.1.100' in result
 
-    @patch('controller.subprocess.check_output')
+    @patch('blucommand.controller.subprocess.check_output')
     def test_resolve_hosts_invalid(self, mock_check, controller):
         """Test hostname resolution with invalid hostname."""
         mock_check.side_effect = subprocess.CalledProcessError(1, 'cmd')
@@ -177,7 +177,7 @@ class TestDiscoveryMethods:
         result = controller._resolve_hosts(hosts)
         assert len(result) == 0
 
-    @patch('controller.subprocess.run')
+    @patch('blucommand.controller.subprocess.run')
     def test_run_dns_sd(self, mock_run, controller):
         """Test dns-sd command execution."""
         mock_run.return_value = None
@@ -188,7 +188,7 @@ class TestDiscoveryMethods:
                     result = controller._run_dns_sd('_musc._tcp', 5)
                     assert isinstance(result, str)
 
-    @patch('controller.subprocess.run')
+    @patch('blucommand.controller.subprocess.run')
     def test_run_dns_sd_timeout(self, mock_run, controller):
         """Test dns-sd command with timeout."""
         mock_run.side_effect = subprocess.TimeoutExpired('dns-sd', 5)

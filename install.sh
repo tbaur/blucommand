@@ -75,20 +75,16 @@ mkdir -p "$BIN_DIR"
 # Secure cache directory (owner only access)
 chmod 700 "$INSTALL_DIR/cache" 2>/dev/null || true
 
-# Copy files to installation directory
-echo -e "${CYAN}Copying files...${RESET}"
-cp -r "$SCRIPT_DIR"/*.py "$INSTALL_DIR/" 2>/dev/null || true
-cp "$SCRIPT_DIR/pytest.ini" "$INSTALL_DIR/" 2>/dev/null || true
-cp "$SCRIPT_DIR/requirements-test.txt" "$INSTALL_DIR/" 2>/dev/null || true
-
-# Create tests directory if it exists
-if [ -d "$SCRIPT_DIR/tests" ]; then
-    mkdir -p "$INSTALL_DIR/tests"
-    cp -r "$SCRIPT_DIR/tests"/* "$INSTALL_DIR/tests/" 2>/dev/null || true
-fi
-
-# Make main.py executable
-chmod +x "$INSTALL_DIR/main.py"
+# Install the package where Python can import it, next to the config.
+echo -e "${CYAN}Installing package...${RESET}"
+rm -rf "$INSTALL_DIR/blucommand"
+cp -R "$SCRIPT_DIR/src/blucommand" "$INSTALL_DIR/blucommand"
+cat > "$INSTALL_DIR/blucommand-run" << EOF
+#!/bin/bash
+export PYTHONPATH="$INSTALL_DIR\${PYTHONPATH:+:\$PYTHONPATH}"
+exec python3 -m blucommand "\$@"
+EOF
+chmod +x "$INSTALL_DIR/blucommand-run"
 
 # Determine if this is a new install or update
 CONFIG_FILE="$INSTALL_DIR/config.json"
@@ -216,7 +212,7 @@ if [ -L "$SYMLINK_TARGET" ]; then
 fi
 
 # Create/update symlink
-ln -sf "$INSTALL_DIR/main.py" "$SYMLINK_TARGET"
+ln -sf "$INSTALL_DIR/blucommand-run" "$SYMLINK_TARGET"
 echo -e "${GREEN}Symlink created: ${SYMLINK_TARGET}${RESET}"
 
 # Check if ~/local/bin is in PATH
