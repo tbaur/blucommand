@@ -333,7 +333,7 @@ class TestLSDPEdges:
         libc = MagicMock()
 
         def getifaddrs(head_ptr):
-            head_ptr._obj.contents = ctypes.pointer(nodes[0])
+            head_ptr._obj.contents = nodes[0]
             return 0
 
         libc.getifaddrs.side_effect = getifaddrs
