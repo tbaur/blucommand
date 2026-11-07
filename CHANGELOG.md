@@ -9,6 +9,23 @@ From 1.1.1 onward this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) based on
 [Conventional Commits](https://www.conventionalcommits.org). See [RELEASING.md](RELEASING.md).
 
+## [3.0.0](https://github.com/tbaur/blucommand/compare/v2.0.1...v3.0.0) (2026-11-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* require Python 3.11 or later ([#79](https://github.com/tbaur/blucommand/issues/79))
+
+### Features
+
+* require Python 3.11 or later ([#79](https://github.com/tbaur/blucommand/issues/79)) ([ad427bd](https://github.com/tbaur/blucommand/commit/ad427bdb4197e2a733f6799672f8d2ef75504911))
+
+
+### Documentation
+
+* document CLI approval of Release PR checks ([#75](https://github.com/tbaur/blucommand/issues/75)) ([86f9630](https://github.com/tbaur/blucommand/commit/86f9630ec488ff8bdeeab0754d81618edebd9e60))
+* put each paragraph on one line ([#77](https://github.com/tbaur/blucommand/issues/77)) ([3346cb3](https://github.com/tbaur/blucommand/commit/3346cb3e88833a7d8135a7994616a93c42806523))
+
 ## [2.0.1](https://github.com/tbaur/blucommand/compare/v2.0.0...v2.0.1) (2026-10-22)
 
 
