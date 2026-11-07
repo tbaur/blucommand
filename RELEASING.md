@@ -33,13 +33,19 @@ To ship a release: merge the code PR(s), approve the Release PR's checks, then m
 
 The Release PR is authored by `github-actions[bot]`, because `release.yml` passes `github.token` to release-please. GitHub creates its checks but holds them until a user with write access approves.
 
-**Open the Release PR's Checks tab and click "Approve and run" before merging.**
+**Approve the held runs before merging.** Either click "Approve and run" on the Release PR's Checks tab, or approve them from the CLI:
 
-- There is no CLI for this. `POST /actions/runs/{run_id}/approve` is documented for forks from first-time contributors and does not cover this gate.
+```bash
+sha=$(gh pr view <PR> --json headRefOid --jq .headRefOid)
+gh api "repos/tbaur/blucommand/actions/runs?head_sha=$sha" --jq '.workflow_runs[] | select(.conclusion=="action_required" or .status=="action_required") | .id'
+gh api -X POST repos/tbaur/blucommand/actions/runs/<RUN_ID>/approve
+```
+
+- Approve each run id that the list returns. A Release PR usually has two.
 - The approval does not stick. It is needed on every release, and again whenever release-please updates an open Release PR.
 - **Merging without approving turns the runs red.** They finalise as `failure` with zero jobs and no logs. That means nobody approved them, not that anything broke.
 
-GitHub added this approval step in its [bot-created pull requests change](https://github.blog/changelog/2026-06-11-bot-created-pull-requests-can-run-workflows-if-approved/), and these repos got it in late August 2026. It applies to same-repo branches, not just forks, and has no repository-level opt-out. The only way to remove the step is to author the Release PR as a different identity, which needs a GitHub App or a PAT. This repo uses neither, and the click is cheaper.
+GitHub added this approval step in its [bot-created pull requests change](https://github.blog/changelog/2026-06-11-bot-created-pull-requests-can-run-workflows-if-approved/), and these repos got it in late August 2026. It applies to same-repo branches, not just forks, and has no repository-level opt-out. The only way to remove the step is to author the Release PR as a different identity, which needs a GitHub App or a PAT. This repo uses neither, and approving each release is cheaper.
 
 ## Branch protection
 
