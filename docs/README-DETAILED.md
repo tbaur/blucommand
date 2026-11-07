@@ -564,7 +564,7 @@ This format is ideal for log aggregation systems, monitoring tools, and automate
 
 ## Requirements
 
-- **Python**: 3.10+ (uses only standard library - no external dependencies)
+- **Python**: 3.11+ (uses only standard library - no external dependencies)
 - **Operating System**: macOS (uses `dns-sd` and `dscacheutil` for mDNS discovery)
 - **Network**: Access to BluOS devices on local network
 - **Optional**: UniFi Controller (for network statistics integration)

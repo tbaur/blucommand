@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/tbaur/blucommand/actions/workflows/test.yml/badge.svg)](https://github.com/tbaur/blucommand/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![macOS](https://img.shields.io/badge/macOS-10.15%2B-lightgrey.svg)](https://www.apple.com/macos/)
 
 Command-line controller for BluOS devices on macOS. Pure Python standard library.
@@ -78,7 +78,7 @@ Keychain values take precedence over `config.json`.
 
 ## Requirements
 
-- Python 3.10+ (standard library only)
+- Python 3.11+ (standard library only)
 - macOS 10.15+ (uses `dns-sd` and `dscacheutil` for discovery)
 
 ## Uninstall

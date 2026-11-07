@@ -51,14 +51,14 @@ else
     echo ""
 fi
 
-# Check if Python 3.10+ is available
+# Check if Python 3.11+ is available
 if ! command -v python3 &> /dev/null; then
     echo -e "${RED}Error: python3 is required but not found.${RESET}"
     exit 1
 fi
 
-if ! python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)'; then
-    echo -e "${RED}Error: Python 3.10 or newer is required.${RESET}"
+if ! python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)'; then
+    echo -e "${RED}Error: Python 3.11 or newer is required.${RESET}"
     exit 1
 fi
 
