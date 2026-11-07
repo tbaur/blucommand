@@ -61,7 +61,7 @@ Example: `feat: add group volume command`
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.11+
 - macOS (for testing)
 - Git
 
